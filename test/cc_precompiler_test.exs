@@ -1,8 +1,8 @@
-defmodule CcPrecompilerTest do
+defmodule CCPrecompilerTest do
   use ExUnit.Case
-  doctest CcPrecompiler
+  doctest CCPrecompiler
 
   test "greets the world" do
-    assert CcPrecompiler.hello() == :world
+    assert CCPrecompiler.hello() == :world
   end
 end

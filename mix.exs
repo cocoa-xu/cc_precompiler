@@ -13,11 +13,14 @@ defmodule CCPrecompiler.MixProject do
 
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger, :elixir_make]
     ]
   end
 
   defp deps do
-    [{:elixir_make, "~> 0.6", runtime: false}]
+    [
+      # todo: change this to hex.pm once elixir-lang/elixir_make#55 is merged
+      {:elixir_make, "~> 0.6", runtime: false, github: "cocoa-xu/elixir_make"}
+    ]
   end
 end
