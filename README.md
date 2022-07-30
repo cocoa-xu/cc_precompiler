@@ -1,6 +1,8 @@
-# CcPrecompiler
+# CC Precompiler
 
-**TODO: Add description**
+This is a demo for how to implement a precompiler module with [elixir_make](https://github.com/elixir-lang/elixir_make).
+
+The guide for this demo can be found in the repo of `elixir_make`, in the `PRECOMPILATION_GUIED.md` file.
 
 ## Installation
 
