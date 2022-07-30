@@ -1,3 +1,4 @@
 %{
-  "elixir_make": {:git, "https://github.com/cocoa-xu/elixir_make.git", "4b92f31e32f8718692b7ccefd449596f2df283a6", []},
+  "castore": {:hex, :castore, "0.1.17", "ba672681de4e51ed8ec1f74ed624d104c0db72742ea1a5e74edbc770c815182f", [:mix], [], "hexpm", "d9844227ed52d26e7519224525cb6868650c272d4a3d327ce3ca5570c12163f9"},
+  "elixir_make": {:git, "https://github.com/cocoa-xu/elixir_make.git", "efcf99eca8d8b9d36c192762193a4e06726d7a26", [branch: "cx-fennec_precompile"]},
 }
