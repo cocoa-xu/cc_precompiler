@@ -19,7 +19,7 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
         "gcc", "g++", "-arch x86_64", "-arch x86_64"
       },
       "aarch64-apple-darwin" => {
-        "gcc", "g++", "-arch aarch64", "-arch aarch64"
+        "gcc", "g++", "-arch arm64", "-arch arm64"
       }
     }
   }
