@@ -1,8 +1,4 @@
-defmodule CCPrecompilerTest do
+defmodule Mix.Tasks.ElixirMake.CCPrecompiler.Test do
   use ExUnit.Case
-  doctest CCPrecompiler
-
-  test "greets the world" do
-    assert CCPrecompiler.hello() == :world
-  end
+  doctest Mix.Tasks.ElixirMake.CCPrecompiler
 end
