@@ -1,4 +1,4 @@
 %{
   "castore": {:hex, :castore, "0.1.17", "ba672681de4e51ed8ec1f74ed624d104c0db72742ea1a5e74edbc770c815182f", [:mix], [], "hexpm", "d9844227ed52d26e7519224525cb6868650c272d4a3d327ce3ca5570c12163f9"},
-  "elixir_make": {:git, "https://github.com/cocoa-xu/elixir_make.git", "bb82641c6ff4ad7d8929cd26f4f3d689ecb58293", [branch: "cx-fennec_precompile"]},
+  "elixir_make": {:git, "https://github.com/cocoa-xu/elixir_make.git", "1f3bca311a93325cacab7dff2c06fe68b0daa29e", [branch: "cx-fennec_precompile"]},
 }
