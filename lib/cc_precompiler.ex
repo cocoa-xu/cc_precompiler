@@ -10,6 +10,7 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
 
   @default_compilers %{
     {:unix, :linux} => %{
+      "aarch64-linux-gnu" => {"aarch64-linux-gnu-gcc", "aarch64-linux-gnu-g++"},
       "riscv64-linux-gnu" => {"riscv64-linux-gnu-gcc", "riscv64-linux-gnu-g++"},
       "arm-linux-gnueabihf" => {"gcc-arm-linux-gnueabihf", "g++-arm-linux-gnueabihf"},
     },
