@@ -15,17 +15,54 @@ import Config
 config :cc_precompiler, :config, [
   # optional config that forces overwriting the
   #   triplet of current host
+  #
+  # if `current_target` exists in the `compilers` below,
+  # then "CC", "CXX" and "CPP" will be overwritten as well.
+  # otherwise, this would only changes the target triplet
+  #   for current target, and "CC" will be "gcc", "CXX" and 
+  #   "CPP" will be "g++"
   current_target: "ppc64le-linux-gnu",
-  # optional config that provides a list of compiler
-  #   executable names and triplets
-  compilers: [
-    # the first element of the tuple is the
-    #   executable name of the compiler
-    # the second element is the corresponing 
-    #   target triplet
-    {"s390x-linux-gnu-gcc", "s390x-linux-gnu"},
-    {"gcc-arm-linux-gnueabihf", "arm-linux-gnueabihf"}
-  ]
+
+  # optional config that provides a map of available compilers
+  #   in different systems
+  #   
+  # key is a tuple that is used to match the result of `:os.type`,
+  #   this allows us to provide different available targets in
+  #   different systems
+  # value is a map that describes what compilers are available
+  #   key is a string taht denotes the target triplet
+  #   value is either a 2-tuple or a 4-tuple
+  #     - for 2-tuples, the elements are the executable name of
+  #       the C and C++ compiler respectively
+  #
+  #     - for 4-tuples, the first two elements are the same as in
+  #       2-tuple, the third and fourth elements are the extra args
+  #       that will be passed to the compiler. 
+  #
+  # the last entry below shows the example of using zig as the
+  #   crosscompiler for `aarch64-linux-musl`, the "CC" will be
+  #   "zig cc -target aarch64-linux-musl", and "CXX" and "CPP" will be
+  #   "zig c++ -target aarch64-linux-musl"
+  compilers: %{
+    {:unix, :linux} => %{
+      "riscv64-linux-gnu" => {"riscv64-linux-gnu-gcc", "riscv64-linux-gnu-g++"},
+      "arm-linux-gnueabihf" => {"gcc-arm-linux-gnueabihf", "g++-arm-linux-gnueabihf"},
+      "aarch64-linux-musl" => {
+        "zig", "zig", "cc -target aarch64-linux-musl", "c++ -target aarch64-linux-musl"
+      }
+    },
+    {:unix, :darwin} => %{
+      "x86_64-apple-darwin" => {
+        "gcc", "g++", "-arch x86_64", "-arch x86_64"
+      },
+      "aarch64-apple-darwin" => {
+        "gcc", "g++", "-arch aarch64", "-arch aarch64"
+      },
+      "aarch64-linux-musl" => {
+        "zig", "zig", "cc -target aarch64-linux-musl", "c++ -target aarch64-linux-musl"
+      }
+    }
+  }
 ]
 ```
 

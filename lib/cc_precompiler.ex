@@ -8,7 +8,22 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
 
   @available_nif_versions ~w(2.16)
 
+  @default_compilers %{
+    {:unix, :linux} => %{
+      "riscv64-linux-gnu" => {"riscv64-linux-gnu-gcc", "riscv64-linux-gnu-g++"},
+      "arm-linux-gnueabihf" => {"gcc-arm-linux-gnueabihf", "g++-arm-linux-gnueabihf"},
+    },
+    {:unix, :darwin} => %{
+      "x86_64-apple-darwin" => {
+        "gcc", "g++", "-arch x86_64", "-arch x86_64"
+      },
+      "aarch64-apple-darwin" => {
+        "gcc", "g++", "-arch aarch64", "-arch aarch64"
+      }
+    }
+  }
   @user_config Application.compile_env(:cc_precompile, :config)
+  @compilers Access.get(Access.get(@user_config, :compilers, @default_compilers), :os.type(), %{})
   @impl Mix.Tasks.ElixirMake.Precompile
   def current_target do
     current_target_user_overwrite = Access.get(@user_config, :current_target)
@@ -21,7 +36,16 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
         4 ->
           {:ok, "#{Enum.at(current, 0)}-#{Enum.at(current, 2)}-#{Enum.at(current, 3)}"}
         3 ->
-          {:ok, system_architecture}
+          case :os.type() do
+            {:unix, :darwin} ->
+              if String.match?(Enum.at(current, 2), ~r/^darwin.*/) do
+                {:ok, "#{Enum.at(current, 0)}-#{Enum.at(current, 1)}-darwin"}
+              else
+                {:ok, system_architecture}
+              end
+            _ ->
+              {:ok, system_architecture}
+          end
         _ ->
           {:error, "cannot decide current target"}
       end
@@ -39,7 +63,7 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
     #   DEBIAN/Ubuntu Linux (as I only installed these ones at the
     #   time of writting this example)
     with {:ok, current} <- current_target() do
-      [current] ++ find_all_available_targets()
+      Enum.uniq([current] ++ find_all_available_targets())
     else
       _ ->
         []
@@ -47,20 +71,24 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
   end
 
   defp find_all_available_targets do
-    Access.get(@user_config, :compilers, [
-      {"aarch64-linux-gnu-gcc", "aarch64-linux-gnu"},
-      {"riscv64-linux-gnu-gcc", "riscv64-linux-gnu"}
-    ])
-    |> Enum.map(&find_available_compilers(&1))
+    @compilers
+    |> Map.keys()
+    |> Enum.map(&find_available_compilers(&1, Map.get(@compilers, &1)))
     |> Enum.reject(fn x -> x == nil end)
   end
 
-  defp find_available_compilers({compiler, target}) do
-    if System.find_executable(compiler) do
-      target
+  defp find_available_compilers(triplet, nil), do: nil
+
+  defp find_available_compilers(triplet, compilers) when is_tuple(compilers) do
+    if System.find_executable(elem(compilers, 0)) do
+      triplet
     else
       nil
     end
+  end
+
+  defp find_available_compilers(triplet, invalid) do
+    Mix.raise("Invalid configuration for #{triplet}, expecting a 2-tuple or 4-tuple, however, got #{inspect(invalid)}")
   end
 
   @impl Mix.Tasks.ElixirMake.Precompile
@@ -100,24 +128,26 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
     {:ok, precompiled_artefacts}
   end
 
+  defp get_cc_and_cxx(triplet, default \\ {"gcc", "g++"}) do
+    case Access.get(@compilers, triplet, default) do
+      {cc, cxx} ->
+        {cc, cxx}
+      {cc, cxx, cc_args, cxx_args} ->
+        {"#{cc} #{cc_args}", "#{cxx} #{cxx_args}"}
+    end
+  end
+
   defp do_precompile(app, version, nif_version, args, targets, saved_cwd, cache_dir) do
     saved_cc = System.get_env("CC") || ""
     saved_cxx = System.get_env("CXX") || ""
     saved_cpp = System.get_env("CPP") || ""
-
-    {:ok, current} = current_target()
 
     precompiled_artefacts =
       Enum.reduce(targets, [], fn target, checksums ->
         Logger.debug("Current compiling target: #{target}")
         ElixirMake.Artefact.make_priv_dir(app, :clean)
 
-        {cc, cxx} =
-          if target == current do
-            {"gcc", "g++"}
-          else
-            {"#{target}-gcc", "#{target}-g++"}
-          end
+        {cc, cxx} = get_cc_and_cxx(target)
         System.put_env("CC", cc)
         System.put_env("CXX", cxx)
         System.put_env("CPP", cxx)
