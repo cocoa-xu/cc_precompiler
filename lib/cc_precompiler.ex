@@ -267,13 +267,15 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
       end
 
       with {:file_exists, true} <- {:file_exists, File.exists?(cached_tar_gz)},
-           {:file_integrity, :ok} <-
-             {:file_integrity, ElixirMake.Artefact.check_file_integrity(cached_tar_gz, app)},
-           {:restore_nif, :ok} <-
-             {:restore_nif, ElixirMake.Artefact.restore_nif_file(cached_tar_gz, app)} do
+          {:file_integrity, :ok} <-
+            {:file_integrity, ElixirMake.Artefact.check_file_integrity(cached_tar_gz, app)},
+          {:restore_nif, :ok} <-
+            {:restore_nif, ElixirMake.Artefact.restore_nif_file(cached_tar_gz, app)} do
         :ok
       else
-        {:file_exists, _} ->
+        # of course you can choose to build from scratch instead of letting elixir_make
+        # to raise an error
+        {:file_exists, false} ->
           {:error, "Cache file not exists or cannot download"}
 
         {:file_integrity, _} ->
