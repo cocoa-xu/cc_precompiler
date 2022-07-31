@@ -8,17 +8,23 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
 
   @available_nif_versions ~w(2.16)
 
+  @user_config Application.compile_env(:cc_precompile, :config)
   @impl Mix.Tasks.ElixirMake.Precompile
   def current_target do
-    system_architecture = to_string(:erlang.system_info(:system_architecture))
-    current = String.split(system_architecture, "-", trim: true)
-    case length(current) do
-      4 ->
-        {:ok, "#{Enum.at(current, 0)}-#{Enum.at(current, 2)}-#{Enum.at(current, 3)}"}
-      3 ->
-        {:ok, system_architecture}
-      _ ->
-        {:error, "cannot decide current target"}
+    current_target_user_overwrite = Access.get(@user_config, :current_target)
+    if current_target_user_overwrite do
+      {:ok, current_target_user_overwrite}
+    else
+      system_architecture = to_string(:erlang.system_info(:system_architecture))
+      current = String.split(system_architecture, "-", trim: true)
+      case length(current) do
+        4 ->
+          {:ok, "#{Enum.at(current, 0)}-#{Enum.at(current, 2)}-#{Enum.at(current, 3)}"}
+        3 ->
+          {:ok, system_architecture}
+        _ ->
+          {:error, "cannot decide current target"}
+      end
     end
   end
 
@@ -41,17 +47,17 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
   end
 
   defp find_all_available_targets do
-    [
-      "aarch64-linux-gnu",
-      "riscv64-linux-gnu"
-    ]
+    Access.get(@user_config, :compilers, [
+      {"aarch64-linux-gnu-gcc", "aarch64-linux-gnu"},
+      {"riscv64-linux-gnu-gcc", "riscv64-linux-gnu"}
+    ])
     |> Enum.map(&find_available_compilers(&1))
     |> Enum.reject(fn x -> x == nil end)
   end
 
-  defp find_available_compilers(name) do
-    if System.find_executable(name <> "-gcc") do
-      name
+  defp find_available_compilers({compiler, target}) do
+    if System.find_executable(compiler) do
+      target
     else
       nil
     end
