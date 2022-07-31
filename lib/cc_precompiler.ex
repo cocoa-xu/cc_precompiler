@@ -24,7 +24,8 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
     }
   }
   @user_config Application.compile_env(:cc_precompile, :config)
-  @compilers Access.get(Access.get(@user_config, :compilers, @default_compilers), :os.type(), %{})
+  @compilers Access.get(@user_config, :compilers, @default_compilers)
+  @compilers_current_os Access.get(@compilers, :os.type(), %{})
   @impl Mix.Tasks.ElixirMake.Precompile
   def current_target do
     current_target_user_overwrite = Access.get(@user_config, :current_target)
@@ -72,9 +73,9 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
   end
 
   defp find_all_available_targets do
-    @compilers
+    @compilers_current_os
     |> Map.keys()
-    |> Enum.map(&find_available_compilers(&1, Map.get(@compilers, &1)))
+    |> Enum.map(&find_available_compilers(&1, Map.get(@compilers_current_os, &1)))
     |> Enum.reject(fn x -> x == nil end)
   end
 
@@ -130,7 +131,7 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
   end
 
   defp get_cc_and_cxx(triplet, default \\ {"gcc", "g++"}) do
-    case Access.get(@compilers, triplet, default) do
+    case Access.get(@compilers_current_os, triplet, default) do
       {cc, cxx} ->
         {cc, cxx}
       {cc, cxx, cc_args, cxx_args} ->
@@ -185,20 +186,15 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
     # this implementation will return all URLs regardless if they are reachable
     #   or not. it is possible to only return the URLs that are reachable.
     app = Mix.Project.config()[:app]
-    metadata = ElixirMake.Artefact.metadata(app)
+    version = Mix.Project.config()[:version]
+    base_url = Mix.Project.config()[:cc_precompile_base_url]
+    targets = Enum.uniq(List.flatten(Enum.map(Map.values(@compilers), &Map.keys(&1))))
 
-    case metadata do
-      %{targets: targets, base_url: base_url, version: version} ->
-        for target_triple <- targets, nif_version <- @available_nif_versions do
-          archive_filename =
-            ElixirMake.Artefact.archive_filename(app, version, nif_version, target_triple)
+    for target_triple <- targets, nif_version <- @available_nif_versions do
+      archive_filename =
+        ElixirMake.Artefact.archive_filename(app, version, nif_version, target_triple)
 
-          ElixirMake.Artefact.archive_file_url(base_url, archive_filename)
-        end
-
-      _ ->
-        raise "metadata about current target for the app #{inspect(app)} is not available. " <>
-                "Please compile the project again with: `mix elixir_make.precompile`"
+      ElixirMake.Artefact.archive_file_url(base_url, archive_filename)
     end
   end
 
