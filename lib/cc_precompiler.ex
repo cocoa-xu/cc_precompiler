@@ -78,12 +78,12 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
     |> Enum.reject(fn x -> x == nil end)
   end
 
-  defp find_available_compilers(triplet, nil), do: nil
-
   defp find_available_compilers(triplet, compilers) when is_tuple(compilers) do
     if System.find_executable(elem(compilers, 0)) do
+      Logger.debug("Found compiler for #{triplet}")
       triplet
     else
+      Logger.debug("Compiler not found for #{triplet}")
       nil
     end
   end
