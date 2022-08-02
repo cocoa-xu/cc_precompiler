@@ -12,7 +12,7 @@ It is possible to overwrite these values in `config/config.exs`. For example,
 
 ```elixir
 import Config
-config :cc_precompiler, :config, [
+config :APP_NAME, :cc_precompile, [
   # optional config that forces overwriting the
   #   triplet of current host
   #

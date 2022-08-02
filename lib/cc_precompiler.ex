@@ -8,6 +8,17 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
 
   @available_nif_versions ~w(2.16)
 
+  # this is the default configuration for this demo precompiler module
+  # for linux systems, it will detect for the following targets
+  #   - aarch64-linux-gnu
+  #   - riscv64-linux-gnu
+  #   - arm-linux-gnueabihf
+  # by trying to find the corresponding executable, i.e.,
+  #   - aarch64-linux-gnu-gcc
+  #   - riscv64-linux-gnu-gcc
+  #   - gcc-arm-linux-gnueabihf
+  # (this demo module will only try to find the CC executable, a step further
+  # will be trying to compile a simple C/C++ program using them)
   @default_compilers %{
     {:unix, :linux} => %{
       "aarch64-linux-gnu" => {"aarch64-linux-gnu-gcc", "aarch64-linux-gnu-g++"},
@@ -23,15 +34,17 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
       }
     }
   }
-  @user_config Application.compile_env(:cc_precompile, :config)
+  @user_config Application.compile_env(Mix.Project.config[:app], :cc_precompile)
   @compilers Access.get(@user_config, :compilers, @default_compilers)
   @compilers_current_os Access.get(@compilers, :os.type(), %{})
   @impl Mix.Tasks.ElixirMake.Precompile
   def current_target do
     current_target_user_overwrite = Access.get(@user_config, :current_target)
     if current_target_user_overwrite do
+      # overwrite current target triplet
       {:ok, current_target_user_overwrite}
     else
+      # get current target triplet from `:erlang.system_info/1`
       system_architecture = to_string(:erlang.system_info(:system_architecture))
       current = String.split(system_architecture, "-", trim: true)
       case length(current) do
@@ -40,6 +53,8 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
         3 ->
           case :os.type() do
             {:unix, :darwin} ->
+              # could be something like aarch64-apple-darwin21.0.0
+              # but we don't really need the last 21.0.0 part
               if String.match?(Enum.at(current, 2), ~r/^darwin.*/) do
                 {:ok, "#{Enum.at(current, 0)}-#{Enum.at(current, 1)}-darwin"}
               else
