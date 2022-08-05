@@ -43,10 +43,10 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
     },
     {:unix, :darwin} => %{
       "x86_64-apple-darwin" => {
-        "gcc", "g++", "-arch x86_64", "-arch x86_64"
+        "gcc", "g++", "<% cc %> -arch x86_64", "<% cxx %> -arch x86_64"
       },
       "aarch64-apple-darwin" => {
-        "gcc", "g++", "-arch arm64", "-arch arm64"
+        "gcc", "g++", "<% cc %> -arch arm64", "<% cxx %> -arch arm64"
       }
     }
   }
@@ -169,7 +169,7 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
         Code.require_file(script_path)
         {:script, module, args}
       {cc, cxx, cc_args, cxx_args} ->
-        {"#{cc} #{cc_args}", "#{cxx} #{cxx_args}"}
+        {EEx.eval_string(cc_args, cc: cc), EEx.eval_string(cxx_args, cxx: cxx)}
     end
   end
 

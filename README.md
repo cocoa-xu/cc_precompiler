@@ -44,30 +44,30 @@ config :APP_NAME, :cc_precompile, [
   #       behaviour
   #
   #     - for 4-tuples, the first two elements are the same as in
-  #       2-tuple, the third and fourth elements are the extra args
-  #       that will be passed to the compiler. 
-  #
-  # the last entry below shows the example of using zig as the
-  #   crosscompiler for `aarch64-linux-musl`, the "CC" will be
-  #   "zig cc -target aarch64-linux-musl", and "CXX" and "CPP" will be
-  #   "zig c++ -target aarch64-linux-musl"
+  #       2-tuple, the third and fourth elements are the template
+  #       string for CC and CPP/CXX. for example,
+  #       
+  #       the last entry below shows the example of using zig as the
+  #       crosscompiler for `aarch64-linux-musl`, the "CC" will be
+  #       "zig cc -target aarch64-linux-musl", and "CXX" and "CPP" will be
+  #       "zig c++ -target aarch64-linux-musl"
   compilers: %{
     {:unix, :linux} => %{
       "riscv64-linux-gnu" => {"riscv64-linux-gnu-gcc", "riscv64-linux-gnu-g++"},
       "arm-linux-gnueabihf" => {"gcc-arm-linux-gnueabihf", "g++-arm-linux-gnueabihf"},
       "aarch64-linux-musl" => {
-        "zig", "zig", "cc -target aarch64-linux-musl", "c++ -target aarch64-linux-musl"
+        "zig", "zig", "<% cc %> cc -target aarch64-linux-musl", "<% cxx %> c++ -target aarch64-linux-musl"
       }
     },
     {:unix, :darwin} => %{
       "x86_64-apple-darwin" => {
-        "gcc", "g++", "-arch x86_64", "-arch x86_64"
+        "gcc", "g++", "<% cc %> -arch x86_64", "<% cxx %> -arch x86_64"
       },
       "aarch64-apple-darwin" => {
-        "gcc", "g++", "-arch aarch64", "-arch aarch64"
+        "gcc", "g++", "<% cc %> -arch aarch64", "<% cxx %> -arch aarch64"
       },
       "aarch64-linux-musl" => {
-        "zig", "zig", "cc -target aarch64-linux-musl", "c++ -target aarch64-linux-musl"
+        "zig", "zig", "<% cc %> cc -target aarch64-linux-musl", "<% cxx %> c++ -target aarch64-linux-musl"
       },
       "custom" => {
         :script, "custom.exs", {CustomCompile, []}
@@ -88,6 +88,12 @@ defmodule CustomCompileWithCCache do
 
     "x86_64-linux-gnu" => {
       :script, "custom.exs", {CustomCompileWithCCache, []}
+    }
+  
+  It's also possible to do this using a 4-tuple:
+
+    "x86_64-linux-musl" => {
+      "gcc", "g++", "ccache <% cc %>", "ccache <% cxx %>"
     }
 
   """

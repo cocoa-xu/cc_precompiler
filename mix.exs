@@ -13,7 +13,7 @@ defmodule CCPrecompiler.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :elixir_make]
+      extra_applications: [:logger, :eex, :elixir_make]
     ]
   end
 
