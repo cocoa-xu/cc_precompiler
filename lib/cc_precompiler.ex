@@ -1,5 +1,11 @@
 defmodule CCPrecompiler.CompileScript do
-  @callback compile(command_line_args :: [String.t()], custom_args :: [String.t()]) ::
+  @callback compile(
+    app :: atom(),
+    version :: String.t(),
+    nif_version :: String.t(),
+    cache_dir :: String.t(),
+    command_line_args :: [String.t()],
+    custom_args :: [String.t()]) ::
     {
       archive_full_path :: String.t(),
       archive_tar_gz :: String.t(),
@@ -194,7 +200,7 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
                   cache_dir
                 )
             {:script, module, custom_args} ->
-              Kernel.apply(module, :compile, [args, custom_args])
+              Kernel.apply(module, :compile, [app, version, nif_version, target, cache_dir, args, custom_args])
           end
 
         [

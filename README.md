@@ -77,6 +77,35 @@ config :APP_NAME, :cc_precompile, [
 ]
 ```
 
+And a simple custom compile script for reference,
+
+```elixir
+defmodule CustomCompileWithCCache do
+  @moduledoc """
+  Compile with ccache
+  """
+
+  @behaviour CCPrecompiler.CompileScript
+
+  @impl CCPrecompiler.CompileScript
+  def compile(app, version, nif_version, target, cache_dir, args, _custom_args) do
+    System.put_env("CC", "ccache gcc")
+    System.put_env("CXX", "ccache g++")
+    System.put_env("CPP", "ccache g++")
+
+    ElixirMake.Compile.compile(args)
+
+    ElixirMake.Artefact.create_precompiled_archive(
+      app,
+      version,
+      nif_version,
+      target,
+      cache_dir
+    )
+  end
+end
+```
+
 ## Installation
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed
