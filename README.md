@@ -83,6 +83,13 @@ And a simple custom compile script for reference,
 defmodule CustomCompileWithCCache do
   @moduledoc """
   Compile with ccache
+
+  ## Example
+
+    "x86_64-linux-gnu" => {
+      :script, "custom.exs", {CustomCompileWithCCache, []}
+    }
+
   """
 
   @behaviour CCPrecompiler.CompileScript
