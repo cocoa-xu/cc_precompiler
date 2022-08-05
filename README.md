@@ -31,9 +31,17 @@ config :APP_NAME, :cc_precompile, [
   #   different systems
   # value is a map that describes what compilers are available
   #   key is a string taht denotes the target triplet
-  #   value is either a 2-tuple or a 4-tuple
+  #   value is either a 2-tuple, a 3-tuple or a 4-tuple
   #     - for 2-tuples, the elements are the executable name of
   #       the C and C++ compiler respectively
+  #
+  #     - for 3-tuples, the first element should be `:script`
+  #       the second element is the path to the elixir script file
+  #       the third element is a 2-tuple, 
+  #          the first one is the name of the module
+  #          the second one is custom args
+  #       the module need to impl the `CCPrecompiler.CompileScript`
+  #       behaviour
   #
   #     - for 4-tuples, the first two elements are the same as in
   #       2-tuple, the third and fourth elements are the extra args
@@ -60,6 +68,9 @@ config :APP_NAME, :cc_precompile, [
       },
       "aarch64-linux-musl" => {
         "zig", "zig", "cc -target aarch64-linux-musl", "c++ -target aarch64-linux-musl"
+      },
+      "custom" => {
+        :script, "custom.exs", {CustomCompile, []}
       }
     }
   }

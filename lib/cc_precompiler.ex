@@ -1,3 +1,13 @@
+defmodule CCPrecompiler.CompileScript do
+  @callback compile(command_line_args :: [String.t()], custom_args :: [String.t()]) ::
+    {
+      archive_full_path :: String.t(),
+      archive_tar_gz :: String.t(),
+      checksum_algo :: :sha256,
+      checksum :: String.t()
+    }
+end
+
 defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
   @moduledoc """
   Precompile with existing crosscompiler in the system.
@@ -149,6 +159,9 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
     case Access.get(@compilers_current_os, triplet, default) do
       {cc, cxx} ->
         {cc, cxx}
+      {:script, script_path, {module, args}} ->
+        Code.require_file(script_path)
+        {:script, module, args}
       {cc, cxx, cc_args, cxx_args} ->
         {"#{cc} #{cc_args}", "#{cxx} #{cxx_args}"}
     end
@@ -164,21 +177,25 @@ defmodule Mix.Tasks.ElixirMake.CCPrecompiler do
         Logger.debug("Current compiling target: #{target}")
         ElixirMake.Artefact.make_priv_dir(app, :clean)
 
-        {cc, cxx} = get_cc_and_cxx(target)
-        System.put_env("CC", cc)
-        System.put_env("CXX", cxx)
-        System.put_env("CPP", cxx)
-
-        ElixirMake.Compile.compile(args)
-
         {_archive_full_path, archive_tar_gz, checksum_algo, checksum} =
-          ElixirMake.Artefact.create_precompiled_archive(
-            app,
-            version,
-            nif_version,
-            target,
-            cache_dir
-          )
+          case get_cc_and_cxx(target) do
+            {cc, cxx} ->
+              System.put_env("CC", cc)
+              System.put_env("CXX", cxx)
+              System.put_env("CPP", cxx)
+
+              ElixirMake.Compile.compile(args)
+
+              ElixirMake.Artefact.create_precompiled_archive(
+                  app,
+                  version,
+                  nif_version,
+                  target,
+                  cache_dir
+                )
+            {:script, module, custom_args} ->
+              Kernel.apply(module, :compile, [args, custom_args])
+          end
 
         [
           {target, %{path: archive_tar_gz, checksum_algo: checksum_algo, checksum: checksum}}
