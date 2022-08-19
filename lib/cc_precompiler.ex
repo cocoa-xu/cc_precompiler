@@ -84,7 +84,7 @@ defmodule CCPrecompiler do
   end
 
   @impl ElixirMake.Precompiler
-  def all_supported_targets() do
+  def all_supported_targets(:compile) do
     # this callback is expected to return a list of string for
     #   all supported targets by this precompiler. in this
     #   implementation, we will try to find a few crosscompilers
@@ -99,6 +99,11 @@ defmodule CCPrecompiler do
       _ ->
         []
     end
+  end
+
+  @impl ElixirMake.Precompiler
+  def all_supported_targets(:fetch) do
+    List.flatten(Enum.map(@compilers, &Map.keys(elem(&1, 1))))
   end
 
   defp find_all_available_targets do
@@ -235,7 +240,7 @@ defmodule CCPrecompiler do
         app: app,
         cached_tar_gz: Path.join([cache_dir, archived_artefact_file]),
         target: target,
-        targets: all_supported_targets(),
+        targets: all_supported_targets(:fetch),
         version: version
       }
 
