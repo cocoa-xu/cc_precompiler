@@ -25,10 +25,12 @@ defmodule CCPrecompiler do
 
   # this is the default configuration for this demo precompiler module
   # for linux systems, it will detect for the following targets
+  #   - x86_64-linux-gnu
   #   - aarch64-linux-gnu
   #   - riscv64-linux-gnu
   #   - arm-linux-gnueabihf
   # by trying to find the corresponding executable, i.e.,
+  #   - x86_64-linux-gnu-gcc
   #   - aarch64-linux-gnu-gcc
   #   - riscv64-linux-gnu-gcc
   #   - gcc-arm-linux-gnueabihf
@@ -36,6 +38,7 @@ defmodule CCPrecompiler do
   # will be trying to compile a simple C/C++ program using them)
   @default_compilers %{
     {:unix, :linux} => %{
+      "x86_64-linux-gnu" => {"x86_64-linux-gnu-gcc", "x86_64-linux-gnu-g++"},
       "aarch64-linux-gnu" => {"aarch64-linux-gnu-gcc", "aarch64-linux-gnu-g++"},
       "riscv64-linux-gnu" => {"riscv64-linux-gnu-gcc", "riscv64-linux-gnu-g++"},
       "arm-linux-gnueabihf" => {"gcc-arm-linux-gnueabihf", "g++-arm-linux-gnueabihf"}
