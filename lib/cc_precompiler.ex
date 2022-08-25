@@ -53,6 +53,9 @@ defmodule CCPrecompiler do
         "<%= cc %> -arch arm64",
         "<%= cxx %> -arch arm64"
       }
+    },
+    {:win32, :nt} => %{
+      "x86_64-windows-msvc" => {"cl", "cl"}
     }
   }
   @user_config Application.compile_env(Mix.Project.config()[:app], :cc_precompile)
@@ -66,32 +69,79 @@ defmodule CCPrecompiler do
       # overwrite current target triplet
       {:ok, current_target_user_overwrite}
     else
-      # get current target triplet from `:erlang.system_info/1`
-      system_architecture = to_string(:erlang.system_info(:system_architecture))
-      current = String.split(system_architecture, "-", trim: true)
+      current_target(:os.type())
+    end
+  end
 
-      case length(current) do
-        4 ->
-          {:ok, "#{Enum.at(current, 0)}-#{Enum.at(current, 2)}-#{Enum.at(current, 3)}"}
+  def current_target({:win32, _}) do
+    with true <- nil != System.find_executable("powershell"),
+         {processor_architecture, 0} <-
+           System.cmd("powershell", ["-Command", "\"$env:PROCESSOR_ARCHITECTURE\""]) do
+      processor_architecture = String.downcase(String.trim(processor_architecture))
 
-        3 ->
-          case :os.type() do
-            {:unix, :darwin} ->
-              # could be something like aarch64-apple-darwin21.0.0
-              # but we don't really need the last 21.0.0 part
-              if String.match?(Enum.at(current, 2), ~r/^darwin.*/) do
-                {:ok, "#{Enum.at(current, 0)}-#{Enum.at(current, 1)}-darwin"}
-              else
-                {:ok, system_architecture}
-              end
+      # https://docs.microsoft.com/en-gb/windows/win32/winprog64/wow64-implementation-details?redirectedfrom=MSDN
+      partial_triplet =
+        case processor_architecture do
+          "amd64" ->
+            "x86_64-windows-"
 
-            _ ->
-              {:ok, system_architecture}
-          end
+          "ia64" ->
+            "ia64-windows-"
 
-        _ ->
-          {:error, "cannot decide current target"}
+          "arm64" ->
+            "aarch64-windows-"
+
+          "x86" ->
+            "x86-windows-"
+        end
+
+      {compiler, _} = :erlang.system_info(:c_compiler_used)
+
+      case compiler do
+        :msc ->
+          {:ok, partial_triplet <> "msvc"}
+
+        :gnuc ->
+          {:ok, partial_triplet <> "gnu"}
+
+        other ->
+          {:ok, partial_triplet <> to_string(other)}
       end
+    else
+      false ->
+        {:error, "cannot find powershell to check the processor architecture of current target"}
+
+      {error_msg, _} ->
+        {:error, error_msg}
+    end
+  end
+
+  def current_target({:unix, _}) do
+    # get current target triplet from `:erlang.system_info/1`
+    system_architecture = to_string(:erlang.system_info(:system_architecture))
+    current = String.split(system_architecture, "-", trim: true)
+
+    case length(current) do
+      4 ->
+        {:ok, "#{Enum.at(current, 0)}-#{Enum.at(current, 2)}-#{Enum.at(current, 3)}"}
+
+      3 ->
+        case :os.type() do
+          {:unix, :darwin} ->
+            # could be something like aarch64-apple-darwin21.0.0
+            # but we don't really need the last 21.0.0 part
+            if String.match?(Enum.at(current, 2), ~r/^darwin.*/) do
+              {:ok, "#{Enum.at(current, 0)}-#{Enum.at(current, 1)}-darwin"}
+            else
+              {:ok, system_architecture}
+            end
+
+          _ ->
+            {:ok, system_architecture}
+        end
+
+      _ ->
+        {:error, "cannot decide current target"}
     end
   end
 
