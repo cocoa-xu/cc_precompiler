@@ -77,45 +77,35 @@ defmodule CCPrecompiler do
   end
 
   def current_target({:win32, _}) do
-    with true <- nil != System.find_executable("powershell"),
-         {processor_architecture, 0} <-
-           System.cmd("powershell", ["-Command", "\"$env:PROCESSOR_ARCHITECTURE\""]) do
-      processor_architecture = String.downcase(String.trim(processor_architecture))
+    processor_architecture = String.downcase(String.trim(System.get_env("PROCESSOR_ARCHITECTURE")))
 
-      # https://docs.microsoft.com/en-gb/windows/win32/winprog64/wow64-implementation-details?redirectedfrom=MSDN
-      partial_triplet =
-        case processor_architecture do
-          "amd64" ->
-            "x86_64-windows-"
+    # https://docs.microsoft.com/en-gb/windows/win32/winprog64/wow64-implementation-details?redirectedfrom=MSDN
+    partial_triplet =
+      case processor_architecture do
+        "amd64" ->
+          "x86_64-windows-"
 
-          "ia64" ->
-            "ia64-windows-"
+        "ia64" ->
+          "ia64-windows-"
 
-          "arm64" ->
-            "aarch64-windows-"
+        "arm64" ->
+          "aarch64-windows-"
 
-          "x86" ->
-            "x86-windows-"
-        end
-
-      {compiler, _} = :erlang.system_info(:c_compiler_used)
-
-      case compiler do
-        :msc ->
-          {:ok, partial_triplet <> "msvc"}
-
-        :gnuc ->
-          {:ok, partial_triplet <> "gnu"}
-
-        other ->
-          {:ok, partial_triplet <> to_string(other)}
+        "x86" ->
+          "x86-windows-"
       end
-    else
-      false ->
-        {:error, "cannot find powershell to check the processor architecture of current target"}
 
-      {error_msg, _} ->
-        {:error, error_msg}
+    {compiler, _} = :erlang.system_info(:c_compiler_used)
+
+    case compiler do
+      :msc ->
+        {:ok, partial_triplet <> "msvc"}
+
+      :gnuc ->
+        {:ok, partial_triplet <> "gnu"}
+
+      other ->
+        {:ok, partial_triplet <> to_string(other)}
     end
   end
 
@@ -280,35 +270,5 @@ defmodule CCPrecompiler do
       {cc, cxx, cc_args, cxx_args} ->
         {EEx.eval_string(cc_args, cc: cc), EEx.eval_string(cxx_args, cxx: cxx)}
     end
-  end
-
-  @impl ElixirMake.Precompiler
-  def post_precompile() do
-    Logger.debug("Post precompile")
-    write_metadata_to_file()
-  end
-
-  defp write_metadata_to_file() do
-    app = Mix.Project.config()[:app]
-    version = Mix.Project.config()[:version]
-    nif_version = ElixirMake.Precompiler.current_nif_version()
-    cache_dir = ElixirMake.Precompiler.cache_dir()
-
-    with {:ok, target} <- current_target() do
-      archived_artefact_file =
-        ElixirMake.Artefact.archive_filename(app, version, nif_version, target)
-
-      metadata = %{
-        app: app,
-        cached_tar_gz: Path.join([cache_dir, archived_artefact_file]),
-        target: target,
-        targets: all_supported_targets(:fetch),
-        version: version
-      }
-
-      ElixirMake.Artefact.write_metadata(app, metadata)
-    end
-
-    :ok
   end
 end
