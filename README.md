@@ -108,7 +108,7 @@ defmodule CustomCompileWithCCache do
 
     ElixirMake.Compiler.compile(args)
 
-    ElixirMake.Artefact.create_precompiled_archive(
+    ElixirMake.Precompiler.create_precompiled_archive(
       app,
       version,
       nif_version,

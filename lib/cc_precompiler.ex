@@ -186,23 +186,23 @@ defmodule CCPrecompiler do
 
   @impl ElixirMake.Precompiler
   def build_native(args) do
-    # in this callback we just build the NIF library natively,
-    #   and because this precompiler module is designed for NIF
-    #   libraries that use C/C++ as the main language with Makefile,
-    #   we can just call `ElixirMake.Compiler.compile(args)`
+    # In this callback we just build the NIF library natively,
+    # and because this precompiler module is designed for NIF
+    # libraries that use C/C++ as the main language with Makefile,
+    # we can just call `ElixirMake.Precompiler.mix_compile(args)`
     #
-    # it's also possible to forward this call to:
+    # It's also possible to forward this call to:
     #
     #   `precompile(args, elem(current_target(), 1))`
     #
-    #   this could be useful when the precompiler is using a universal
-    #   (cross-)compiler, say zig. in this way, the compiled binaries
-    #   (`mix compile`) will be consistent as the corrsponding precompiled
-    #   one (with `mix elixir_make.precompile`)
+    # This could be useful when the precompiler is using a universal
+    # (cross-)compiler, say zig. in this way, the compiled binaries
+    # (`mix compile`) will be consistent as the corrsponding precompiled
+    # one (with `mix elixir_make.precompile`)
     #
-    #   however, if you'd prefer to having the same behaviour for `mix compile`
-    #   then the following line is okay
-    ElixirMake.Compiler.compile(args)
+    # However, if you'd prefer to having the same behaviour for `mix compile`
+    # then the following line is okay
+    ElixirMake.Precompiler.mix_compile(args)
   end
 
   @impl ElixirMake.Precompiler
@@ -228,7 +228,6 @@ defmodule CCPrecompiler do
     saved_cpp = System.get_env("CPP") || ""
 
     Logger.debug("Current compiling target: #{target}")
-    ElixirMake.Artefact.make_priv_dir(app, :clean)
 
     case get_cc_and_cxx(target) do
       {cc, cxx} ->
@@ -236,7 +235,7 @@ defmodule CCPrecompiler do
         System.put_env("CXX", cxx)
         System.put_env("CPP", cxx)
 
-        ElixirMake.Compiler.compile(args)
+        ElixirMake.Precompiler.compile(args)
 
       {:script, module, custom_args} ->
         Kernel.apply(module, :compile, [
