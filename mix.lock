@@ -1,3 +1,3 @@
 %{
-  "elixir_make": {:git, "https://github.com/cocoa-xu/elixir_make.git", "a5a604c8ff89f11b4ede1a488de21e8b57b71a56", [branch: "cx-improve-precompiler"]},
+  "elixir_make": {:git, "https://github.com/cocoa-xu/elixir_make.git", "936ef943055bea0db566ae5ca41d2f8cc141f490", [branch: "cx-improve-precompiler"]},
 }
