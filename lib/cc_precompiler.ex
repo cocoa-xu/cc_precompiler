@@ -228,8 +228,10 @@ defmodule CCPrecompiler do
   def precompile(args, target) do
     # in this callback we compile the NIF library for a given target
     saved_cwd = File.cwd!()
-    app = Mix.Project.config()[:app]
-    version = Mix.Project.config()[:version]
+    config = Mix.Project.config()
+    app = config[:app]
+    version = config[:version]
+    priv_paths = config[:make_precompiler_priv_paths] || ["."]
     nif_version = ElixirMake.Precompiler.current_nif_version()
 
     saved_cc = System.get_env("CC") || ""
@@ -244,9 +246,18 @@ defmodule CCPrecompiler do
         System.put_env("CXX", cxx)
         System.put_env("CPP", cxx)
 
+        # remove files in the lists
         app_priv = ElixirMake.Precompiler.app_priv(app)
-        File.rm_rf!(app_priv)
+        case priv_paths do
+          ["."] ->
+            File.rm_rf!(app_priv)
+          _ ->
+            Enum.each(priv_paths, fn priv_path ->
+              Enum.each(Path.wildcard(priv_path), &File.rm_rf!/1)
+            end)
+        end
         File.mkdir_p!(app_priv)
+
         ElixirMake.Precompiler.mix_compile(args)
 
       {:script, module, custom_args} ->
