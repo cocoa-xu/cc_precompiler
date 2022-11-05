@@ -26,22 +26,31 @@ defmodule CCPrecompiler do
   # this is the default configuration for this demo precompiler module
   # for linux systems, it will detect for the following targets
   #   - x86_64-linux-gnu
+  #   - i686-linux-gnu
   #   - aarch64-linux-gnu
+  #   - armv7l-linux-gnueabihf
   #   - riscv64-linux-gnu
-  #   - arm-linux-gnueabihf
+  #   - powerpc64le-linux-gnu
+  #   - s390x-linux-gnu
   # by trying to find the corresponding executable, i.e.,
   #   - x86_64-linux-gnu-gcc
+  #   - i686-linux-gnu-gcc
   #   - aarch64-linux-gnu-gcc
+  #   - arm-linux-gnueabihf-gcc
   #   - riscv64-linux-gnu-gcc
-  #   - gcc-arm-linux-gnueabihf
+  #   - powerpc64le-linux-gnu-gcc
+  #   - s390x-linux-gnu-gcc
   # (this demo module will only try to find the CC executable, a step further
   # will be trying to compile a simple C/C++ program using them)
   @default_compilers %{
     {:unix, :linux} => %{
       "x86_64-linux-gnu" => {"x86_64-linux-gnu-gcc", "x86_64-linux-gnu-g++"},
+      "i686-linux-gnu" => {"i686-linux-gnu-gcc", "i686-linux-gnu-g++"},
       "aarch64-linux-gnu" => {"aarch64-linux-gnu-gcc", "aarch64-linux-gnu-g++"},
+      "armv7l-linux-gnueabihf" => {"arm-linux-gnueabihf-gcc", "arm-linux-gnueabihf-g++"},
       "riscv64-linux-gnu" => {"riscv64-linux-gnu-gcc", "riscv64-linux-gnu-g++"},
-      "arm-linux-gnueabihf" => {"gcc-arm-linux-gnueabihf", "g++-arm-linux-gnueabihf"}
+      "powerpc64le-linux-gnu" => {"powerpc64le-linux-gnu-gcc", "powerpc64le-linux-gnu-g++"},
+      "s390x-linux-gnu" => {"s390x-linux-gnu-gcc", "s390x-linux-gnu-g++"}
     },
     {:unix, :darwin} => %{
       "x86_64-apple-darwin" => {
