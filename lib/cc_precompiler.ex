@@ -244,6 +244,9 @@ defmodule CCPrecompiler do
         System.put_env("CXX", cxx)
         System.put_env("CPP", cxx)
 
+        app_priv = ElixirMake.Precompiler.app_priv(app)
+        File.rm_rf!(app_priv)
+        File.mkdir_p!(app_priv)
         ElixirMake.Precompiler.mix_compile(args)
 
       {:script, module, custom_args} ->
