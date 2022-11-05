@@ -235,7 +235,7 @@ defmodule CCPrecompiler do
         System.put_env("CXX", cxx)
         System.put_env("CPP", cxx)
 
-        ElixirMake.Precompiler.compile(args)
+        ElixirMake.Precompiler.mix_compile(args)
 
       {:script, module, custom_args} ->
         Kernel.apply(module, :compile, [
