@@ -199,7 +199,7 @@ defmodule CCPrecompiler do
     # in this callback we just build the NIF library natively,
     #   and because this precompiler module is designed for NIF
     #   libraries that use C/C++ as the main language with Makefile,
-    #   we can just call `ElixirMake.Compile.compile(args)`
+    #   we can just call `ElixirMake.Compiler.compile(args)`
     #
     # it's also possible to forward this call to:
     #
@@ -212,7 +212,7 @@ defmodule CCPrecompiler do
     #
     #   however, if you'd prefer to having the same behaviour for `mix compile`
     #   then the following line is okay
-    ElixirMake.Compile.compile(args)
+    ElixirMake.Compiler.compile(args)
   end
 
   @impl ElixirMake.Precompiler
@@ -222,7 +222,7 @@ defmodule CCPrecompiler do
     #   - if you'd prefer to save artefacts in some global location
     #   - if you'd like to having a user customisable option such as
     #     `cc_precompiler_cache_dir`
-    ElixirMake.Artefact.cache_dir()
+    ElixirMake.Precompiler.cache_dir()
   end
 
   @impl ElixirMake.Precompiler
@@ -231,7 +231,7 @@ defmodule CCPrecompiler do
     saved_cwd = File.cwd!()
     app = Mix.Project.config()[:app]
     version = Mix.Project.config()[:version]
-    nif_version = ElixirMake.Compile.current_nif_version()
+    nif_version = ElixirMake.Precompiler.current_nif_version()
 
     saved_cc = System.get_env("CC") || ""
     saved_cxx = System.get_env("CXX") || ""
@@ -246,7 +246,7 @@ defmodule CCPrecompiler do
         System.put_env("CXX", cxx)
         System.put_env("CPP", cxx)
 
-        ElixirMake.Compile.compile(args)
+        ElixirMake.Compiler.compile(args)
 
       {:script, module, custom_args} ->
         Kernel.apply(module, :compile, [
@@ -291,8 +291,8 @@ defmodule CCPrecompiler do
   defp write_metadata_to_file() do
     app = Mix.Project.config()[:app]
     version = Mix.Project.config()[:version]
-    nif_version = ElixirMake.Compile.current_nif_version()
-    cache_dir = ElixirMake.Artefact.cache_dir()
+    nif_version = ElixirMake.Precompiler.current_nif_version()
+    cache_dir = ElixirMake.Precompiler.cache_dir()
 
     with {:ok, target} <- current_target() do
       archived_artefact_file =
