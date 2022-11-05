@@ -13,15 +13,13 @@ defmodule CCPrecompiler.MixProject do
 
   def application do
     [
-      extra_applications: [:logger, :eex, :elixir_make]
+      extra_applications: [:logger, :eex]
     ]
   end
 
   defp deps do
     [
-      {:elixir_make, "~> 0.6", runtime: false,
-        github: "cocoa-xu/elixir_make", branch: "cx-improve-precompiler"}
-        # path: "../elixir_make"}
+      {:elixir_make, "~> 0.6", runtime: false, github: "cocoa-xu/elixir_make", branch: "cx-improve-precompiler"}
     ]
   end
 end
