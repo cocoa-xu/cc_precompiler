@@ -19,7 +19,6 @@ defmodule CCPrecompiler.MixProject do
 
   defp deps do
     [
-      # todo: change this to hex.pm once elixir-lang/elixir_make#56 is merged
       {:elixir_make, "~> 0.6", runtime: false,
         github: "cocoa-xu/elixir_make", branch: "cx-improve-precompiler"}
         # path: "../elixir_make"}
