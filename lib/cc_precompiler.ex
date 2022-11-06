@@ -3,16 +3,9 @@ defmodule CCPrecompiler.CompileScript do
               app :: atom(),
               version :: String.t(),
               nif_version :: String.t(),
-              cache_dir :: String.t(),
               command_line_args :: [String.t()],
               custom_args :: [String.t()]
-            ) ::
-              {
-                archive_full_path :: String.t(),
-                archive_tar_gz :: String.t(),
-                checksum_algo :: :sha256,
-                checksum :: String.t()
-              }
+            ) :: :ok | {:error, String.t()}
 end
 
 defmodule CCPrecompiler do
@@ -215,24 +208,12 @@ defmodule CCPrecompiler do
   end
 
   @impl ElixirMake.Precompiler
-  def cache_dir() do
-    # in this optional callback we can return a custom cache directory
-    #   for this precompiler module, this can be useful
-    #   - if you'd prefer to save artefacts in some global location
-    #   - if you'd like to having a user customisable option such as
-    #     `cc_precompiler_cache_dir`
-    ElixirMake.Precompiler.cache_dir()
-  end
-
-  @impl ElixirMake.Precompiler
   def precompile(args, target) do
     # in this callback we compile the NIF library for a given target
-    saved_cwd = File.cwd!()
     config = Mix.Project.config()
     app = config[:app]
     version = config[:version]
     priv_paths = config[:make_precompiler_priv_paths] || ["."]
-    nif_version = ElixirMake.Precompiler.current_nif_version()
 
     saved_cc = System.get_env("CC") || ""
     saved_cxx = System.get_env("CXX") || ""
@@ -247,7 +228,7 @@ defmodule CCPrecompiler do
         System.put_env("CPP", cxx)
 
         # remove files in the lists
-        app_priv = ElixirMake.Precompiler.app_priv(app)
+        app_priv = Path.join(Mix.Project.app_path(config), "priv")
         case priv_paths do
           ["."] ->
             File.rm_rf!(app_priv)
@@ -264,15 +245,13 @@ defmodule CCPrecompiler do
         Kernel.apply(module, :compile, [
           app,
           version,
-          nif_version,
+          "#{:erlang.system_info(:nif_version)}",
           target,
-          cache_dir(),
           args,
           custom_args
         ])
     end
 
-    File.cd!(saved_cwd)
     System.put_env("CC", saved_cc)
     System.put_env("CXX", saved_cxx)
     System.put_env("CPP", saved_cpp)

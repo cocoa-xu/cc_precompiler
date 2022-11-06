@@ -110,15 +110,7 @@ defmodule CustomCompileWithCCache do
     System.put_env("CXX", "ccache g++")
     System.put_env("CPP", "ccache g++")
 
-    ElixirMake.Compiler.compile(args)
-
-    ElixirMake.Precompiler.create_precompiled_archive(
-      app,
-      version,
-      nif_version,
-      target,
-      cache_dir
-    )
+    ElixirMake.Precompiler.mix_compile(args)
   end
 end
 ```
