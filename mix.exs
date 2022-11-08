@@ -19,7 +19,7 @@ defmodule CCPrecompiler.MixProject do
 
   defp deps do
     [
-      {:elixir_make, "~> 0.6", runtime: false, github: "cocoa-xu/elixir_make", branch: "cx-test-symbolic-links"}
+      {:elixir_make, "~> 0.6", runtime: false, github: "elixir-lang/elixir_make"}
     ]
   end
 end
