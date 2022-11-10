@@ -2,7 +2,7 @@
 
 C/C++ Cross-compiler Precompiler is a library that supports [elixir_make](https://github.com/elixir-lang/elixir_make)'s precompilation feature. It's customisble and easy to extend.
 
-The guide for how to `:ccprecompiler` can be found in the `PRECOMPILATION_GUIED.md` file.
+The guide for how to `cc_precompiler` can be found in the `PRECOMPILATION_GUIED.md` file.
 
 ## Installation
 
@@ -29,13 +29,13 @@ By default, it will probe some well-known C/C++ crosss-compilers existing on you
 
   | Target Triplet          | Compiler Prefix, `prefix` | `CC`            | `CXX`           |
   |:------------------------|:--------------------------|:----------------|:----------------|
-  | `x86_64-linux-gnu`      | `x86_64-linux-gnu-`       | `#{prefix}-gcc` | `#{prefix}-g++` |
-  | `i686-linux-gnu`        | `i686-linux-gnu-`         | `#{prefix}-gcc` | `#{prefix}-g++` |
-  | `aarch64-linux-gnu`     | `aarch64-linux-gnu-`      | `#{prefix}-gcc` | `#{prefix}-g++` |
-  | `armv7l-linux-gnuabihf` | `arm-linux-gnueabihf-`    | `#{prefix}-gcc` | `#{prefix}-g++` |
-  | `riscv64-linux-gnu`     | `riscv64-linux-gnu-`      | `#{prefix}-gcc` | `#{prefix}-g++` |
-  | `powerpc64le-linux-gnu` | `powerpc64le-linux-gnu-`  | `#{prefix}-gcc` | `#{prefix}-g++` |
-  | `s390x-linux-gnu`       | `s390x-linux-gnu-`        | `#{prefix}-gcc` | `#{prefix}-g++` |
+  | `x86_64-linux-gnu`      | `x86_64-linux-gnu-`       | `#{prefix}gcc` | `#{prefix}g++` |
+  | `i686-linux-gnu`        | `i686-linux-gnu-`         | `#{prefix}gcc` | `#{prefix}g++` |
+  | `aarch64-linux-gnu`     | `aarch64-linux-gnu-`      | `#{prefix}gcc` | `#{prefix}g++` |
+  | `armv7l-linux-gnuabihf` | `arm-linux-gnueabihf-`    | `#{prefix}gcc` | `#{prefix}g++` |
+  | `riscv64-linux-gnu`     | `riscv64-linux-gnu-`      | `#{prefix}gcc` | `#{prefix}g++` |
+  | `powerpc64le-linux-gnu` | `powerpc64le-linux-gnu-`  | `#{prefix}gcc` | `#{prefix}g++` |
+  | `s390x-linux-gnu`       | `s390x-linux-gnu-`        | `#{prefix}gcc` | `#{prefix}g++` |
 
   `cc_precompiler` will try to find `#{prefix}-gcc` in `$PATH`, and if `#{prefix}-gcc` can be found, then the correspondong target will be activiated. Otherwise, that target will be ignored.
 
@@ -74,15 +74,16 @@ def project do
       # key == {:unix, :linux} => when compiling on Linux
       {:unix, :linux} => %{
         # key (target triplet) => `riscv64-linux-gnu`
+        # value => `PREFIX`
+        #   - for strings, the string will be used as the prefix of
+        #         the C and C++ compiler respectively, i.e.,
+        #         CC=`#{prefix}gcc`
+        #         CXX=`#{prefix}g++`
+        "riscv64-linux-gnu" => "riscv64-linux-gnu-",
+        # key (target triplet) => `armv7l-linux-gnueabihf`
         # value => `{CC, CXX}`
         #   - for 2-tuples, the elements are the executable name of
         #         the C and C++ compiler respectively
-        "riscv64-linux-gnu" => {
-          "riscv64-linux-gnu-gcc", 
-          "riscv64-linux-gnu-g++"
-        },
-        # key (target triplet) => `armv7l-linux-gnueabihf`
-        # value => `{CC, CXX}`
         "armv7l-linux-gnueabihf" => {
           "arm-linux-gnueabihf-gcc",
           "arm-linux-gnueabihf-g++"

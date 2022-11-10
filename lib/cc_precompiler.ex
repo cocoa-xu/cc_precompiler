@@ -16,8 +16,8 @@ defmodule CCPrecompiler do
   require Logger
   @behaviour ElixirMake.Precompiler
 
-  # this is the default configuration for this demo precompiler module
-  # for linux systems, it will detect for the following targets
+  # The default configuration for this precompiler module on linux systems.
+  # It will detect for the following targets
   #   - x86_64-linux-gnu
   #   - i686-linux-gnu
   #   - aarch64-linux-gnu
@@ -33,17 +33,17 @@ defmodule CCPrecompiler do
   #   - riscv64-linux-gnu-gcc
   #   - powerpc64le-linux-gnu-gcc
   #   - s390x-linux-gnu-gcc
-  # (this demo module will only try to find the CC executable, a step further
+  # (this module will only try to find the CC executable, a step further
   # will be trying to compile a simple C/C++ program using them)
   @default_compilers %{
     {:unix, :linux} => %{
-      "x86_64-linux-gnu" => {"x86_64-linux-gnu-gcc", "x86_64-linux-gnu-g++"},
-      "i686-linux-gnu" => {"i686-linux-gnu-gcc", "i686-linux-gnu-g++"},
-      "aarch64-linux-gnu" => {"aarch64-linux-gnu-gcc", "aarch64-linux-gnu-g++"},
-      "armv7l-linux-gnueabihf" => {"arm-linux-gnueabihf-gcc", "arm-linux-gnueabihf-g++"},
-      "riscv64-linux-gnu" => {"riscv64-linux-gnu-gcc", "riscv64-linux-gnu-g++"},
-      "powerpc64le-linux-gnu" => {"powerpc64le-linux-gnu-gcc", "powerpc64le-linux-gnu-g++"},
-      "s390x-linux-gnu" => {"s390x-linux-gnu-gcc", "s390x-linux-gnu-g++"}
+      "x86_64-linux-gnu" => "x86_64-linux-gnu-",
+      "i686-linux-gnu" => "i686-linux-gnu-",
+      "aarch64-linux-gnu" => "aarch64-linux-gnu-",
+      "armv7l-linux-gnueabihf" => "arm-linux-gnueabihf-",
+      "riscv64-linux-gnu" => "riscv64-linux-gnu-",
+      "powerpc64le-linux-gnu" => "powerpc64le-linux-gnu-",
+      "s390x-linux-gnu" => "s390x-linux-gnu-"
     },
     {:unix, :darwin} => %{
       "x86_64-apple-darwin" => {
@@ -107,7 +107,7 @@ defmodule CCPrecompiler do
         {:ok, partial_triplet <> "gnu"}
 
       other ->
-        {:ok, partial_triplet <> to_string(other)}
+        {:ok, partial_triplet <> Atom.to_string(other)}
     end
   end
 
@@ -170,8 +170,33 @@ defmodule CCPrecompiler do
     |> Enum.reject(fn x -> x == nil end)
   end
 
-  defp find_available_compilers(triplet, compilers) when is_tuple(compilers) do
-    if System.find_executable(elem(compilers, 0)) do
+  defp find_available_compilers(triplet, prefix) when is_binary(prefix) do
+    if ensure_executable(["#{prefix}gcc", "#{prefix}g++"]) do
+      Logger.debug("Found compiler for #{triplet}")
+      triplet
+    else
+      Logger.debug("Compiler not found for #{triplet}")
+      nil
+    end
+  end
+
+  defp find_available_compilers(triplet, {cc, cxx}) when is_binary(cc) and is_binary(cxx) do
+    if ensure_executable([cc, cxx]) do
+      Logger.debug("Found compiler for #{triplet}")
+      triplet
+    else
+      Logger.debug("Compiler not found for #{triplet}")
+      nil
+    end
+  end
+
+  defp find_available_compilers(triplet, {:script, _, _}) do
+    triplet
+  end
+
+  defp find_available_compilers(triplet, {cc_executable, cxx_executable, _, _})
+  when is_binary(cc_executable) and is_binary(cxx_executable) do
+    if ensure_executable([cc_executable, cxx_executable]) do
       Logger.debug("Found compiler for #{triplet}")
       triplet
     else
@@ -182,8 +207,12 @@ defmodule CCPrecompiler do
 
   defp find_available_compilers(triplet, invalid) do
     Mix.raise(
-      "Invalid configuration for #{triplet}, expecting a 2-tuple or 4-tuple, however, got #{inspect(invalid)}"
+      "Invalid configuration for #{triplet}, expecting a string, 2-tuple or 4-tuple. Got `#{inspect(invalid)}`"
     )
+  end
+
+  defp ensure_executable(executable_list) when is_list(executable_list) do
+    Enum.all?(executable_list, &System.find_executable/1)
   end
 
   @impl ElixirMake.Precompiler
