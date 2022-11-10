@@ -1,13 +1,3 @@
-defmodule CCPrecompiler.CompileScript do
-  @callback compile(
-              app :: atom(),
-              version :: String.t(),
-              nif_version :: String.t(),
-              command_line_args :: [String.t()],
-              custom_args :: [String.t()]
-            ) :: :ok | {:error, String.t()}
-end
-
 defmodule CCPrecompiler do
   @moduledoc """
   Precompile with existing crosscompiler in the system.
@@ -63,12 +53,16 @@ defmodule CCPrecompiler do
       "x86_64-windows-msvc" => {"cl", "cl"}
     }
   }
-  @user_config Application.compile_env(Mix.Project.config()[:app], :cc_precompile)
-  @compilers Access.get(@user_config, :compilers, @default_compilers)
-  @compilers_current_os Access.get(@compilers, :os.type(), %{})
+  defp default_compilers, do: @default_compilers
+  defp user_config, do: Mix.Project.config()[:cc_precompile] || default_compilers()
+  defp compilers, do: Access.get(user_config(), :compilers, default_compilers())
+  defp compilers_current_os, do: Access.get(compilers(), :os.type(), %{})
+
   @impl ElixirMake.Precompiler
   def current_target do
-    current_target_user_overwrite = Access.get(@user_config, :current_target)
+    user_config = Mix.Project.config()[:cc_precompile] || default_compilers()
+    IO.inspect(user_config, label: "user_config")
+    current_target_user_overwrite = Access.get(user_config, :current_target)
 
     if current_target_user_overwrite do
       # overwrite current target triplet
@@ -160,13 +154,13 @@ defmodule CCPrecompiler do
 
   @impl ElixirMake.Precompiler
   def all_supported_targets(:fetch) do
-    List.flatten(Enum.map(@compilers, &Map.keys(elem(&1, 1))))
+    List.flatten(Enum.map(compilers(), &Map.keys(elem(&1, 1))))
   end
 
   defp find_all_available_targets do
-    @compilers_current_os
+    compilers_current_os()
     |> Map.keys()
-    |> Enum.map(&find_available_compilers(&1, Map.get(@compilers_current_os, &1)))
+    |> Enum.map(&find_available_compilers(&1, Map.get(compilers_current_os(), &1)))
     |> Enum.reject(fn x -> x == nil end)
   end
 
@@ -289,13 +283,18 @@ defmodule CCPrecompiler do
   end
 
   defp get_cc_and_cxx(triplet, default \\ {"gcc", "g++"}) do
-    case Access.get(@compilers_current_os, triplet, default) do
+    case Access.get(compilers_current_os(), triplet, default) do
       {cc, cxx} ->
         {cc, cxx}
 
       {:script, script_path, {module, args}} ->
-        Code.require_file(script_path)
-        {:script, module, args}
+        case {script_path, module} do
+          {"", CCPrecompiler.UniversalBinary} ->
+            {:script, module, args}
+          _ ->
+            Code.require_file(script_path)
+            {:script, module, args}
+        end
 
       {cc, cxx, cc_args, cxx_args} ->
         {EEx.eval_string(cc_args, cc: cc), EEx.eval_string(cxx_args, cxx: cxx)}

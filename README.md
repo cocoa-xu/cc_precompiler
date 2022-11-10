@@ -130,9 +130,15 @@ def project do
         #          the first one is the name of the module
         #          the second one is custom args
         #       the module need to impl the `compile/5` callback declared in 
-        #          `CCPrecompiler.CompileScript`
+        #          `CCPrecompiler.CompilationScript`
         "my-custom-target" => {
           :script, "custom.exs", {CustomCompile, []}
+        },
+        # key (target triplet) => `macos-universal`
+        # on macOS, CCPrecompiler also provides a builtin module to create 
+        # universal binary for NIF libraries that only has a `nif.so` file
+        "macos-universal" => {
+          :script, "", {CCPrecompiler.UniversalBinary, []}
         }
       }
     }
@@ -140,33 +146,35 @@ def project do
 ]
 ```
 
-`CCPrecompiler.CompileScript` is defined as follows,
+`CCPrecompiler.CompilationScript` is defined as follows,
 
 ```elixir
-defmodule CCPrecompiler.CompileScript do
+defmodule CCPrecompiler.CompilationScript do
   @callback compile(
               app :: atom(),
               version :: String.t(),
               nif_version :: String.t(),
+              target :: String.t(),
               command_line_args :: [String.t()],
               custom_args :: [String.t()]
             ) :: :ok | {:error, String.t()}
 end
 ```
 
-And a simple custom compile script for reference,
+### Custom Compilation Script Examples
+#### Compile with `ccache`
 
 ```elixir
-defmodule CustomCompileWithCCache do
+defmodule CCPrecompiler.CCache do
   @moduledoc """
   Compile with ccache
 
   ## Example
 
     "x86_64-linux-gnu" => {
-      :script, "custom.exs", {CustomCompileWithCCache, []}
+      :script, "custom.exs", {CCPrecompiler.CCache, []}
     }
-  
+
   It's also possible to do this using a 4-tuple:
 
     "x86_64-linux-musl" => {
@@ -175,15 +183,74 @@ defmodule CustomCompileWithCCache do
 
   """
 
-  @behaviour CCPrecompiler.CompileScript
+  @behaviour CCPrecompiler.CompilationScript
 
-  @impl CCPrecompiler.CompileScript
-  def compile(app, version, nif_version, target, cache_dir, args, _custom_args) do
+  @impl CCPrecompiler.CompilationScript
+  def compile(app, version, nif_version, target, args, _custom_args) do
     System.put_env("CC", "ccache gcc")
     System.put_env("CXX", "ccache g++")
     System.put_env("CPP", "ccache g++")
 
     ElixirMake.Precompiler.mix_compile(args)
+  end
+end
+```
+
+#### Build A Universal NIF Binary on macOS
+File can be found at `lib/complation_script/universal_binary.ex`.
+
+```elixir
+defmodule CCPrecompiler.UniversalBinary do
+  @moduledoc """
+  Build a universal binary on macOS
+
+  ## Example
+
+    "macos-universal" => {
+      :script, "universal_binary.exs", {CCPrecompiler.UniversalBinary, []}
+    }
+
+  """
+
+  @behaviour CCPrecompiler.CompilationScript
+
+  @impl CCPrecompiler.CompilationScript
+  def compile(_app, _version, _nif_version, _target, args, _custom_args) do
+    config = Mix.Project.config()
+    app_priv = Path.join(Mix.Project.app_path(config), "priv")
+    make_nif_filename = config[:make_nif_filename]
+    nif_file = "#{make_nif_filename}.so"
+
+    compiled_bin = Path.join(app_priv, nif_file)
+    x86_64_bin = Path.join(app_priv, "#{make_nif_filename}_x86_64.so")
+    aarch64_bin = Path.join(app_priv, "#{make_nif_filename}_aarch64.so")
+
+    File.rm(compiled_bin)
+
+    # first we compile `x86_64-apple-darwin`
+    :ok = System.put_env("CC", "gcc -arch x86_64")
+    System.put_env("CXX", "gcc -arch x86_64")
+    System.put_env("CPP", "g++ -arch x86_64")
+    ElixirMake.Compiler.compile(args)
+    File.rename!(compiled_bin, x86_64_bin)
+
+    # then we compile `aarch64-apple-darwin`
+    System.put_env("CC", "gcc -arch arm64")
+    System.put_env("CXX", "gcc -arch arm64")
+    System.put_env("CPP", "g++ -arch arm64")
+    ElixirMake.Compiler.compile(args)
+    File.rename!(compiled_bin, aarch64_bin)
+
+    {%IO.Stream{}, exit_status} = System.cmd("lipo", ["-create", "-output", compiled_bin, x86_64_bin, aarch64_bin])
+
+    File.rm!(x86_64_bin)
+    File.rm!(aarch64_bin)
+
+    if exit_status == 0 do
+      :ok
+    else
+      Mix.raise("Failed to create universal binary")
+    end
   end
 end
 ```
