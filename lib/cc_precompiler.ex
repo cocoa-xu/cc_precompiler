@@ -294,8 +294,30 @@ defmodule CCPrecompiler do
     :ok
   end
 
-  defp get_cc_and_cxx(triplet, default \\ {"gcc", "g++"}) do
-    case Access.get(compilers_current_os(), triplet, default) do
+  defp get_cc_and_cxx(triplet) do
+    case Access.get(compilers_current_os(), triplet, nil) do
+      nil ->
+        cc = System.get_env("CC")
+        cxx = System.get_env("CXX")
+        cpp = System.get_env("CPP")
+
+        case {cc, cxx, cpp} do
+          {nil, _, _} ->
+            {"gcc", "g++"}
+
+          {_, nil, nil} ->
+            {"gcc", "g++"}
+
+          {_, _, nil} ->
+            {cc, cxx}
+
+          {_, nil, _} ->
+            {cc, cpp}
+
+          {_, _, _} ->
+            {cc, cxx}
+        end
+
       {cc, cxx} ->
         {cc, cxx}
 
