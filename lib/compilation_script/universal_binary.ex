@@ -39,7 +39,8 @@ defmodule CCPrecompiler.UniversalBinary do
     ElixirMake.Compiler.compile(args)
     File.rename!(compiled_bin, aarch64_bin)
 
-    {_, exit_status} = System.cmd("lipo", ["-create", "-output", compiled_bin, x86_64_bin, aarch64_bin])
+    {_, exit_status} =
+      System.cmd("lipo", ["-create", "-output", compiled_bin, x86_64_bin, aarch64_bin])
 
     File.rm!(x86_64_bin)
     File.rm!(aarch64_bin)

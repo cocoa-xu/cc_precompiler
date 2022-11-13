@@ -60,20 +60,29 @@ defmodule CCPrecompiler do
 
   @impl ElixirMake.Precompiler
   def current_target do
-    user_config = Mix.Project.config()[:cc_precompile] || default_compilers()
-    IO.inspect(user_config, label: "user_config")
-    current_target_user_overwrite = Access.get(user_config, :current_target)
+    current_target_from_env = current_target_from_env()
 
-    if current_target_user_overwrite do
-      # overwrite current target triplet
-      {:ok, current_target_user_overwrite}
+    if current_target_from_env do
+      # overwrite current target triplet from environment variables
+      {:ok, current_target_from_env}
     else
       current_target(:os.type())
     end
   end
 
+  defp current_target_from_env do
+    arch = System.get_env("TARGET_ARCH")
+    os = System.get_env("TARGET_OS")
+    abi = System.get_env("TARGET_ABI")
+
+    if !Enum.all?([arch, os, abi], &Kernel.is_nil/1) do
+      "#{arch}-#{os}-#{abi}"
+    end
+  end
+
   def current_target({:win32, _}) do
-    processor_architecture = String.downcase(String.trim(System.get_env("PROCESSOR_ARCHITECTURE")))
+    processor_architecture =
+      String.downcase(String.trim(System.get_env("PROCESSOR_ARCHITECTURE")))
 
     # https://docs.microsoft.com/en-gb/windows/win32/winprog64/wow64-implementation-details?redirectedfrom=MSDN
     partial_triplet =
@@ -189,7 +198,7 @@ defmodule CCPrecompiler do
   end
 
   defp find_available_compilers(triplet, {cc_executable, cxx_executable, _, _})
-  when is_binary(cc_executable) and is_binary(cxx_executable) do
+       when is_binary(cc_executable) and is_binary(cxx_executable) do
     if ensure_executable([cc_executable, cxx_executable]) do
       Logger.debug("Found compiler for #{triplet}")
       triplet
@@ -252,14 +261,17 @@ defmodule CCPrecompiler do
 
         # remove files in the lists
         app_priv = Path.join(Mix.Project.app_path(config), "priv")
+
         case priv_paths do
           ["."] ->
             File.rm_rf!(app_priv)
+
           _ ->
             Enum.each(priv_paths, fn priv_path ->
               Enum.each(Path.wildcard(priv_path), &File.rm_rf!/1)
             end)
         end
+
         File.mkdir_p!(app_priv)
 
         ElixirMake.Precompiler.mix_compile(args)
@@ -291,6 +303,7 @@ defmodule CCPrecompiler do
         case {script_path, module} do
           {"", CCPrecompiler.UniversalBinary} ->
             {:script, module, args}
+
           _ ->
             Code.require_file(script_path)
             {:script, module, args}
