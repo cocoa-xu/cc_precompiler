@@ -253,26 +253,29 @@ defmodule CCPrecompiler do
 
     Logger.debug("Current compiling target: #{target}")
 
-    case get_cc_and_cxx(target) do
+    cc_cxx = get_cc_and_cxx(target)
+
+    # remove files in the lists
+    app_priv = Path.join(Mix.Project.app_path(config), "priv")
+
+    case priv_paths do
+      ["."] ->
+        File.rm_rf!(app_priv)
+
+      _ ->
+        for include <- priv_paths,
+            file <- Path.wildcard(Path.join(app_priv, include)) do
+          File.rm_rf(file)
+        end
+    end
+
+    File.mkdir_p!(app_priv)
+
+    case cc_cxx do
       {cc, cxx} ->
         System.put_env("CC", cc)
         System.put_env("CXX", cxx)
         System.put_env("CPP", cxx)
-
-        # remove files in the lists
-        app_priv = Path.join(Mix.Project.app_path(config), "priv")
-
-        case priv_paths do
-          ["."] ->
-            File.rm_rf!(app_priv)
-
-          _ ->
-            Enum.each(priv_paths, fn priv_path ->
-              Enum.each(Path.wildcard(priv_path), &File.rm_rf!/1)
-            end)
-        end
-
-        File.mkdir_p!(app_priv)
 
         ElixirMake.Precompiler.mix_compile(args)
 
