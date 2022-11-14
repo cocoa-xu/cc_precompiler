@@ -55,14 +55,14 @@ For macOS targets, the version part will be trimmed, e.g., `x86_64-apple-darwin2
 
 ### Customise Precompilation Targets
 
-To override the default configuration, please set the `cc_precompile` key in `project`. For example,
+To override the default configuration, please set the `cc_precompiler` key in `project`. For example,
 
 ```elixir
 
 def project do
 [ 
   # ...
-  cc_precompile: [
+  cc_precompiler: [
     # optional config that provides a map of available compilers
     # on different systems
     compilers: %{
@@ -218,12 +218,12 @@ defmodule CCPrecompiler.UniversalBinary do
   def compile(_app, _version, _nif_version, _target, args, _custom_args) do
     config = Mix.Project.config()
     app_priv = Path.join(Mix.Project.app_path(config), "priv")
-    make_nif_filename = config[:make_nif_filename]
-    nif_file = "#{make_nif_filename}.so"
+    make_precompiler_filename = config[:make_precompiler_filename] || "nif"
+    nif_file = "#{make_precompiler_filename}.so"
 
     compiled_bin = Path.join(app_priv, nif_file)
-    x86_64_bin = Path.join(app_priv, "#{make_nif_filename}_x86_64.so")
-    aarch64_bin = Path.join(app_priv, "#{make_nif_filename}_aarch64.so")
+    x86_64_bin = Path.join(app_priv, "#{make_precompiler_filename}_x86_64.so")
+    aarch64_bin = Path.join(app_priv, "#{make_precompiler_filename}_aarch64.so")
 
     File.rm(compiled_bin)
 

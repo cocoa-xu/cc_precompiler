@@ -54,7 +54,7 @@ defmodule CCPrecompiler do
     }
   }
   defp default_compilers, do: @default_compilers
-  defp user_config, do: Mix.Project.config()[:cc_precompile] || default_compilers()
+  defp user_config, do: Mix.Project.config()[:cc_precompiler] || default_compilers()
   defp compilers, do: Access.get(user_config(), :compilers, default_compilers())
   defp compilers_current_os, do: Access.get(compilers(), :os.type(), %{})
 
