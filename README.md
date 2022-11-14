@@ -37,7 +37,7 @@ By default, it will probe some well-known C/C++ crosss-compilers existing on you
   | `powerpc64le-linux-gnu` | `powerpc64le-linux-gnu-`  | `#{prefix}gcc` | `#{prefix}g++` |
   | `s390x-linux-gnu`       | `s390x-linux-gnu-`        | `#{prefix}gcc` | `#{prefix}g++` |
 
-  `cc_precompiler` will try to find `#{prefix}-gcc` in `$PATH`, and if `#{prefix}-gcc` can be found, then the correspondong target will be activiated. Otherwise, that target will be ignored.
+  `cc_precompiler` will try to find `#{prefix}gcc` in `$PATH`, and if `#{prefix}gcc` can be found, then the correspondong target will be activiated. Otherwise, that target will be ignored.
 
 #### macOS
 
