@@ -321,6 +321,9 @@ defmodule CCPrecompiler do
       {cc, cxx} ->
         {cc, cxx}
 
+      prefix when is_binary(prefix) ->
+        {"#{prefix}gcc", "#{prefix}g++"}
+
       {:script, script_path, {module, args}} ->
         case {script_path, module} do
           {"", CCPrecompiler.UniversalBinary} ->
