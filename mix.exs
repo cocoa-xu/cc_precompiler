@@ -27,7 +27,7 @@ defmodule CCPrecompiler.MixProject do
     [
       {:elixir_make, "~> 0.7.0", runtime: false},
       # docs
-      {:ex_doc, ">= 0.0.0", runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :docs, runtime: false}
     ]
   end
 
