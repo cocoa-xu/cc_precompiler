@@ -44,7 +44,7 @@ defmodule CCPrecompiler.MixProject do
     [
       main: "PRECOMPILATION_GUIDE",
       source_ref: "v#{@version}",
-      source_url: @source_url,
+      source_url: @github_url,
       extras: [
         "PRECOMPILATION_GUIDE.md"
       ]
