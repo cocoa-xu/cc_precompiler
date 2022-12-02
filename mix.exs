@@ -11,6 +11,7 @@ defmodule CCPrecompiler.MixProject do
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      docs: docs(),
       description: "NIF library Precompiler that Uses C/C++ (cross-)compiler.",
       package: package()
     ]
@@ -36,6 +37,17 @@ defmodule CCPrecompiler.MixProject do
       files: ~w(lib README* LICENSE* *.md),
       licenses: ["Apache-2.0"],
       links: links()
+    ]
+  end
+
+  defp docs do
+    [
+      main: "PRECOMPILATION_GUIDE",
+      source_ref: "v#{@version}",
+      source_url: @source_url,
+      extras: [
+        "PRECOMPILATION_GUIDE.md"
+      ]
     ]
   end
 
