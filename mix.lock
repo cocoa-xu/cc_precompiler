@@ -1,3 +1,3 @@
 %{
-  "elixir_make": {:git, "https://github.com/elixir-lang/elixir_make.git", "343c8b262f69591df6bd50d510350dfcdbd94722", []},
+  "elixir_make": {:hex, :elixir_make, "0.7.0", "03e6a43ac701a2afee73bb5dd030b4dcddcb403bf81abb4753c1da64521cd05d", [:mix], [{:castore, "~> 0.1", [hex: :castore, repo: "hexpm", optional: true]}], "hexpm", "b1ccb45cc1c5df16349473b52adbd718f362585a5481d761b8a9fdb45f25b303"},
 }
