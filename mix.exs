@@ -34,7 +34,7 @@ defmodule CCPrecompiler.MixProject do
   defp package do
     [
       name: Atom.to_string(@app),
-      files: ~w(lib README* LICENSE* *.md),
+      files: ~w(lib mix.exs README* LICENSE* *.md),
       licenses: ["Apache-2.0"],
       links: links()
     ]
