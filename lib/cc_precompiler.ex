@@ -277,9 +277,11 @@ defmodule CCPrecompiler do
         System.put_env("CXX", cxx)
         System.put_env("CPP", cxx)
 
+        System.put_env("CC_PRECOMPILER_CURRENT_TARGET", target)
         ElixirMake.Precompiler.mix_compile(args)
 
       {:script, module, custom_args} ->
+        System.put_env("CC_PRECOMPILER_CURRENT_TARGET", target)
         Kernel.apply(module, :compile, [
           app,
           version,

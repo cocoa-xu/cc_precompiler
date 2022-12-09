@@ -12,7 +12,7 @@ by adding `cc_precompiler` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:cc_precompiler, "~> 0.1.0"}
+    {:cc_precompiler, "~> 0.1.1"}
   ]
 end
 ```
@@ -52,6 +52,16 @@ By default, it will probe some well-known C/C++ crosss-compilers existing on you
 Triplet for current host will be always available, `:erlang.system_info(:system_architecture)`.
 
 For macOS targets, the version part will be trimmed, e.g., `x86_64-apple-darwin21.6.0` will be `x86_64-apple-darwin`.
+
+### Note
+#### Conditionally switch on/off compilation flags depending on the target
+During the compilation, `cc_precompiler` will set and update the environment variable `CC_PRECOMPILER_CURRENT_TARGET` to the current target's triplet.
+
+The reason we might need this is that some 3rd party library may support some feature, like AVX, but they do not offer an auto-detection mechanism, and we have to manually switch on/off corresponding compilation flags.
+
+An example with further explanation can be found on [cocoa-xu/nif_opt_flags](https://github.com/cocoa-xu/nif_opt_flags).
+
+Last but not least, as the name suggests, this environment variable is set by `cc_precompiler`, thus if you switch to another precompiler, please check their manual for the equvilent.
 
 ### Customise Precompilation Targets
 

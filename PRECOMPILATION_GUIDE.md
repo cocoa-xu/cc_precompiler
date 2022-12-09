@@ -17,7 +17,7 @@ def deps do
 [
     # ...
     {:elixir_make, "~> 0.6", runtime: false},
-    {:cc_precompiler, "~> 0.1.0", runtime: false, github: "cocoa-xu/cc_precompiler"}
+    {:cc_precompiler, "~> 0.1", runtime: false, github: "cocoa-xu/cc_precompiler"}
     # ...
 ]
 end
