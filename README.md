@@ -74,8 +74,9 @@ def project do
   # ...
   cc_precompiler: [
     # optional config key
-    # false - target triplet for the current machine will be included in all available targets
-    # true - only targets listed in `compilers` will be included in all available targets
+    #   false - target triplet for the current machine will be included in all available targets
+    #   true  - only targets listed in `compilers` will be included in all available targets
+    # defaults to `false`
     only_listed_targets: true,
 
     # optional config that provides a map of available compilers
