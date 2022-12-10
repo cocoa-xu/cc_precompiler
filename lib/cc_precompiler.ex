@@ -57,6 +57,7 @@ defmodule CCPrecompiler do
   defp user_config, do: Mix.Project.config()[:cc_precompiler] || default_compilers()
   defp compilers, do: Access.get(user_config(), :compilers, default_compilers())
   defp compilers_current_os, do: Access.get(compilers(), :os.type(), %{})
+  defp only_listed_targets, do: Access.get(user_config(), :only_listed_targets, false)
 
   @impl ElixirMake.Precompiler
   def current_target do
@@ -153,11 +154,17 @@ defmodule CCPrecompiler do
     #   purpose, therefore the hardcoded compiler names are used in
     #   DEBIAN/Ubuntu Linux (as I only installed these ones at the
     #   time of writting this example)
-    with {:ok, current} <- current_target() do
-      Enum.uniq([current] ++ find_all_available_targets())
+    available_targets = find_all_available_targets()
+
+    if only_listed_targets() do
+      available_targets
     else
-      _ ->
-        []
+      with {:ok, current} <- current_target() do
+        Enum.uniq([current] ++ available_targets)
+      else
+        _ ->
+          available_targets
+      end
     end
   end
 
@@ -282,6 +289,7 @@ defmodule CCPrecompiler do
 
       {:script, module, custom_args} ->
         System.put_env("CC_PRECOMPILER_CURRENT_TARGET", target)
+
         Kernel.apply(module, :compile, [
           app,
           version,
