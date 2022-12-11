@@ -144,6 +144,10 @@ defmodule CCPrecompiler do
     end
   end
 
+  defp only_local do
+    System.get_env("CC_PRECOMPILER_PRECOMPILE_ONLY_LOCAL") == "true"
+  end
+
   @impl ElixirMake.Precompiler
   def all_supported_targets(:compile) do
     # this callback is expected to return a list of string for
@@ -156,15 +160,22 @@ defmodule CCPrecompiler do
     #   time of writting this example)
     available_targets = find_all_available_targets()
 
-    if only_listed_targets() do
-      available_targets
-    else
-      with {:ok, current} <- current_target() do
+    case {only_local(), only_listed_targets(), current_target()} do
+      {true, true, {:ok, current}} ->
+        if Enum.member?(available_targets, current) do
+          [current]
+        else
+          []
+        end
+
+      {true, _, {:error, err_msg}} ->
+        Mix.raise(err_msg)
+
+      {true, false, {:ok, current}} ->
         Enum.uniq([current] ++ available_targets)
-      else
-        _ ->
-          available_targets
-      end
+
+      {false, true, _} ->
+        available_targets
     end
   end
 
