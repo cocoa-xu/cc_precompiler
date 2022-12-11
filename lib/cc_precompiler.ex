@@ -173,6 +173,15 @@ defmodule CCPrecompiler do
     List.flatten(Enum.map(compilers(), &Map.keys(elem(&1, 1))))
   end
 
+  @impl ElixirMake.Precompiler
+  def unavailable_target(_) do
+    if only_listed_targets() do
+      :ignore
+    else
+      :compile
+    end
+  end
+
   defp find_all_available_targets do
     compilers_current_os()
     |> Map.keys()
