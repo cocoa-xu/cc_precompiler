@@ -154,10 +154,10 @@ defmodule CCPrecompiler do
     #   all supported targets by this precompiler. in this
     #   implementation, we will try to find a few crosscompilers
     #   available in the system.
-    # Note that this implementation is mainly used for demostration
+    # Note that this implementation is mainly used for demonstration
     #   purpose, therefore the hardcoded compiler names are used in
     #   DEBIAN/Ubuntu Linux (as I only installed these ones at the
-    #   time of writting this example)
+    #   time of writing this example)
     available_targets = find_all_available_targets()
 
     case {only_local(), only_listed_targets(), current_target()} do
@@ -258,7 +258,7 @@ defmodule CCPrecompiler do
     #
     # This could be useful when the precompiler is using a universal
     # (cross-)compiler, say zig. in this way, the compiled binaries
-    # (`mix compile`) will be consistent as the corrsponding precompiled
+    # (`mix compile`) will be consistent as the corresponding precompiled
     # one (with `mix elixir_make.precompile`)
     #
     # However, if you'd prefer to having the same behaviour for `mix compile`

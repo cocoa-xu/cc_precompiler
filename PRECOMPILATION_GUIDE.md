@@ -91,7 +91,7 @@ It is also possible to pass in a 2-arity function to `make_precompiler_unavailab
 
 By default, everything in `priv` will be included in the precompiled tar file. However, files in `assets` can be very large or platform-independent, therefore, we would like to only include the `nif.so` (`nif.dll`) file and everything in the `lib` directory in the precompiled tar file to reduce the footprint. In this case, we can set `make_precompiler_priv_paths` to `["nif.so", "nif.dll", "lib"]`.
 
-Of course, wildcards (`?`, `**`, `*`) are supported when specifiying files. For example, `["nif.*", "lib/*.so", "lib/*.dll", "lib/*.dylib"]` will include `nif.so` (Linux/macOS) or `nif.dll` (Windows), and `.so` or `.dll` files in the `lib` directory. 
+Of course, wildcards (`?`, `**`, `*`) are supported when specifying files. For example, `["nif.*", "lib/*.so", "lib/*.dll", "lib/*.dylib"]` will include `nif.so` (Linux/macOS) or `nif.dll` (Windows), and `.so` or `.dll` files in the `lib` directory. 
 
 Directory structures and symbolic links are preserved.
 
@@ -164,7 +164,7 @@ jobs:
           otp-version: "25.1"
           elixir-version: "1.14"
 
-      - name: Install system dependecies
+      - name: Install system dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y build-essential automake autoconf pkg-config bc m4 unzip zip \
