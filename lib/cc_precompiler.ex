@@ -373,7 +373,7 @@ defmodule CCPrecompiler do
   end
 
   @impl true
-  def post_precompile_target(target) do
+  def post_precompile_target(_target) do
     config = Mix.Project.config()
     cc_precompiler_config = config[:cc_precompiler]
     cleanup(config, cc_precompiler_config[:cleanup])
