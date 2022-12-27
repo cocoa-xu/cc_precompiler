@@ -376,15 +376,15 @@ defmodule CCPrecompiler do
   end
 
   @impl true
-  def post_precompile_target(_target) do
+  def post_precompile_target(target) do
     config = Mix.Project.config()
     cc_precompiler_config = config[:cc_precompiler]
-    cleanup(config, cc_precompiler_config[:cleanup])
+    cleanup(config, cc_precompiler_config[:cleanup], target)
   end
 
-  defp cleanup(_, nil), do: :ok
+  defp cleanup(_, nil, _), do: :ok
 
-  defp cleanup(config, make_target) when is_binary(make_target) do
+  defp cleanup(config, make_target, current_precompilation_target) when is_binary(make_target) do
     exec =
       System.get_env("MAKE") ||
         os_specific_executable(Keyword.get(config, :make_executable, :default))
@@ -392,7 +392,7 @@ defmodule CCPrecompiler do
     makefile = Keyword.get(config, :make_makefile, :default)
     env = Keyword.get(config, :make_env, %{})
     env = if is_function(env), do: env.(), else: env
-    env = default_env(config, env)
+    env = default_env(config, env, current_precompilation_target)
 
     # In OTP 19, Erlang's `open_port/2` ignores the current working
     # directory when expanding relative paths. This means that `:make_cwd`
@@ -427,7 +427,7 @@ defmodule CCPrecompiler do
 
   # Returns a map of default environment variables
   # Defaults may be overwritten.
-  defp default_env(config, default_env) do
+  defp default_env(config, default_env, current_precompilation_target) do
     root_dir = :code.root_dir()
     erl_interface_dir = Path.join(root_dir, "usr")
     erts_dir = Path.join(root_dir, "erts-#{:erlang.system_info(:version)}")
@@ -460,7 +460,10 @@ defmodule CCPrecompiler do
         "BINDIR" => nil,
         "ROOTDIR" => nil,
         "PROGNAME" => nil,
-        "EMU" => nil
+        "EMU" => nil,
+
+        # cc_precompiler
+        "CC_PRECOMPILER_CURRENT_TARGET" => current_precompilation_target
       },
       default_env
     )
