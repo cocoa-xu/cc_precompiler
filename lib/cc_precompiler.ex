@@ -176,6 +176,9 @@ defmodule CCPrecompiler do
 
       {false, true, _} ->
         available_targets
+
+      {false, false, {:ok, current}} ->
+        Enum.uniq([current] ++ available_targets)
     end
   end
 
