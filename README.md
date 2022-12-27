@@ -1,5 +1,7 @@
 # CC Precompiler
 
+[![Hex.pm](https://img.shields.io/hexpm/v/cc_precompiler.svg?style=flat&color=blue)](https://hex.pm/packages/cc_precompiler)
+
 C/C++ Cross-compiler Precompiler is a library that supports [elixir_make](https://github.com/elixir-lang/elixir_make)'s precompilation feature. It's customisble and easy to extend.
 
 The guide for how to `cc_precompiler` can be found in the `PRECOMPILATION_GUIED.md` file.
@@ -78,6 +80,27 @@ def project do
     #   true  - only targets listed in `compilers` will be included in all available targets
     # defaults to `false`
     only_listed_targets: true,
+
+    # optional config key
+    # clean up the priv directory between different targets
+    # 
+    # for example, common assets for different targets can stay
+    # in the `priv` directory (instead of copying/downloading them
+    # multiple times)
+    # but target specific assets or .o files should be cleaned
+    # so that `make` can compile/generate these files for the next target
+    #
+    # the value for `cleanup` should be a string indicating the cleanup target
+    # in the makefile.
+    # 
+    # for example, cc_precompiler will call `make mycleanup` between each build
+    # if the value for the key `cleanup` is set to `mycleanup`
+    #
+    # also, cc_precompiler will stop if `make mycleanup` exited with non-zero code
+    #
+    # the default value for this key is `nil`, and in such case, cc_precompiler 
+    # will not do anything between each build
+    cleanup: "mycleanup",
 
     # optional config that provides a map of available compilers
     # on different systems

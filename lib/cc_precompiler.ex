@@ -371,4 +371,149 @@ defmodule CCPrecompiler do
         {EEx.eval_string(cc_args, cc: cc), EEx.eval_string(cxx_args, cxx: cxx)}
     end
   end
+
+  @impl true
+  def post_precompile_target(target) do
+    config = Mix.Project.config()
+    cc_precompiler_config = config[:cc_precompiler]
+    cleanup(config, cc_precompiler_config[:cleanup])
+  end
+
+  defp cleanup(_, nil), do: :ok
+
+  defp cleanup(config, make_target) when is_binary(make_target) do
+    exec =
+      System.get_env("MAKE") ||
+        os_specific_executable(Keyword.get(config, :make_executable, :default))
+
+    makefile = Keyword.get(config, :make_makefile, :default)
+    env = Keyword.get(config, :make_env, %{})
+    env = if is_function(env), do: env.(), else: env
+    env = default_env(config, env)
+
+    # In OTP 19, Erlang's `open_port/2` ignores the current working
+    # directory when expanding relative paths. This means that `:make_cwd`
+    # must be an absolute path. This is a different behaviour from earlier
+    # OTP versions and appears to be a bug. It is being tracked at
+    # https://bugs.erlang.org/browse/ERL-175.
+    cwd = Keyword.get(config, :make_cwd, ".") |> Path.expand(File.cwd!())
+
+    if String.contains?(cwd, " ") do
+      IO.warn(
+        "the absolute path to the makefile for this project contains spaces. Make might " <>
+          "not work properly if spaces are present in the path. The absolute path is: " <>
+          inspect(cwd)
+      )
+    end
+
+    base = exec |> Path.basename() |> Path.rootname()
+    args = args_for_makefile(base, makefile) ++ [make_target]
+
+    case cmd(exec, args, cwd, env) do
+      0 ->
+        :ok
+
+      exit_status ->
+        raise_cleanup_error(exec, exit_status)
+    end
+  end
+
+  defp raise_cleanup_error(exec, exit_status) do
+    Mix.raise(~s{Could not complete cleanup work with "#{exec}" (exit status: #{exit_status}).\n})
+  end
+
+  # Returns a map of default environment variables
+  # Defaults may be overwritten.
+  defp default_env(config, default_env) do
+    root_dir = :code.root_dir()
+    erl_interface_dir = Path.join(root_dir, "usr")
+    erts_dir = Path.join(root_dir, "erts-#{:erlang.system_info(:version)}")
+    erts_include_dir = Path.join(erts_dir, "include")
+    erl_ei_lib_dir = Path.join(erl_interface_dir, "lib")
+    erl_ei_include_dir = Path.join(erl_interface_dir, "include")
+
+    Map.merge(
+      %{
+        # Don't use Mix.target/0 here for backwards compatibility
+        "MIX_TARGET" => env("MIX_TARGET", "host"),
+        "MIX_ENV" => to_string(Mix.env()),
+        "MIX_BUILD_PATH" => Mix.Project.build_path(config),
+        "MIX_APP_PATH" => Mix.Project.app_path(config),
+        "MIX_COMPILE_PATH" => Mix.Project.compile_path(config),
+        "MIX_CONSOLIDATION_PATH" => Mix.Project.consolidation_path(config),
+        "MIX_DEPS_PATH" => Mix.Project.deps_path(config),
+        "MIX_MANIFEST_PATH" => Mix.Project.manifest_path(config),
+
+        # Rebar naming
+        "ERL_EI_LIBDIR" => env("ERL_EI_LIBDIR", erl_ei_lib_dir),
+        "ERL_EI_INCLUDE_DIR" => env("ERL_EI_INCLUDE_DIR", erl_ei_include_dir),
+
+        # erlang.mk naming
+        "ERTS_INCLUDE_DIR" => env("ERTS_INCLUDE_DIR", erts_include_dir),
+        "ERL_INTERFACE_LIB_DIR" => env("ERL_INTERFACE_LIB_DIR", erl_ei_lib_dir),
+        "ERL_INTERFACE_INCLUDE_DIR" => env("ERL_INTERFACE_INCLUDE_DIR", erl_ei_include_dir),
+
+        # Disable default erlang values
+        "BINDIR" => nil,
+        "ROOTDIR" => nil,
+        "PROGNAME" => nil,
+        "EMU" => nil
+      },
+      default_env
+    )
+  end
+
+  defp os_specific_executable(exec) when is_binary(exec) do
+    exec
+  end
+
+  defp os_specific_executable(:default) do
+    case :os.type() do
+      {:win32, _} ->
+        cond do
+          System.find_executable("nmake") -> "nmake"
+          System.find_executable("make") -> "make"
+          true -> "nmake"
+        end
+
+      {:unix, type} when type in [:freebsd, :openbsd, :netbsd] ->
+        "gmake"
+
+      _ ->
+        "make"
+    end
+  end
+
+  # Returns a list of command-line args to pass to make (or nmake/gmake) in
+  # order to specify the makefile to use.
+  defp args_for_makefile("nmake", :default), do: ["/F", "Makefile.win"]
+  defp args_for_makefile("nmake", makefile), do: ["/F", makefile]
+  defp args_for_makefile(_, :default), do: []
+  defp args_for_makefile(_, makefile), do: ["-f", makefile]
+
+  # Runs `exec [args]` in `cwd` and prints the stdout and stderr in real time,
+  # as soon as `exec` prints them (using `IO.Stream`).
+  defp cmd(exec, args, cwd, env) do
+    opts = [
+      into: IO.stream(:stdio, :line),
+      stderr_to_stdout: true,
+      cd: cwd,
+      env: env
+    ]
+
+    {%IO.Stream{}, status} = System.cmd(find_executable(exec), args, opts)
+    status
+  end
+
+  defp find_executable(exec) do
+    System.find_executable(exec) ||
+      Mix.raise("""
+      "#{exec}" not found in the path. If you have set the MAKE environment variable,
+      please make sure it is correct.
+      """)
+  end
+
+  defp env(var, default) do
+    System.get_env(var) || default
+  end
 end
