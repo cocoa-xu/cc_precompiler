@@ -2,7 +2,7 @@ defmodule CCPrecompiler.MixProject do
   use Mix.Project
 
   @app :cc_precompiler
-  @version "0.1.4"
+  @version "0.1.5"
   @github_url "https://github.com/cocoa-xu/cc_precompiler"
   def project do
     [
@@ -25,7 +25,7 @@ defmodule CCPrecompiler.MixProject do
 
   defp deps do
     [
-      {:elixir_make, "~> 0.7.2", runtime: false},
+      {:elixir_make, "~> 0.7.3", runtime: false},
       # docs
       {:ex_doc, ">= 0.0.0", only: :docs, runtime: false}
     ]
