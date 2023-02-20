@@ -2,7 +2,7 @@ defmodule CCPrecompiler.MixProject do
   use Mix.Project
 
   @app :cc_precompiler
-  @version "0.1.5"
+  @version "0.1.6"
   @github_url "https://github.com/cocoa-xu/cc_precompiler"
   def project do
     [
@@ -46,7 +46,8 @@ defmodule CCPrecompiler.MixProject do
       source_ref: "v#{@version}",
       source_url: @github_url,
       extras: [
-        "PRECOMPILATION_GUIDE.md"
+        "PRECOMPILATION_GUIDE.md",
+        "CHANGELOG.md"
       ]
     ]
   end
@@ -55,7 +56,8 @@ defmodule CCPrecompiler.MixProject do
     %{
       "GitHub" => @github_url,
       "Readme" => "#{@github_url}/blob/v#{@version}/README.md",
-      "Precompilation Guide" => "#{@github_url}/blob/v#{@version}/PRECOMPILATION_GUIDE.md"
+      "Precompilation Guide" => "#{@github_url}/blob/v#{@version}/PRECOMPILATION_GUIDE.md",
+      "Changelog" => "#{@github_url}/blob/v#{@version}/CHANGELOG.md"
     }
   end
 end
