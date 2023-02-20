@@ -58,6 +58,7 @@ defmodule CCPrecompiler do
   defp compilers, do: Access.get(user_config(), :compilers, default_compilers())
   defp compilers_current_os, do: Access.get(compilers(), :os.type(), %{})
   defp only_listed_targets, do: Access.get(user_config(), :only_listed_targets, false)
+  defp allow_missing_compiler, do: Access.get(user_config(), :allow_missing_compiler, false)
 
   @impl ElixirMake.Precompiler
   def current_target do
@@ -245,7 +246,11 @@ defmodule CCPrecompiler do
   end
 
   defp ensure_executable(executable_list) when is_list(executable_list) do
-    Enum.all?(executable_list, &System.find_executable/1)
+    if allow_missing_compiler() do
+      Enum.any?(executable_list, &System.find_executable/1)
+    else
+      Enum.all?(executable_list, &System.find_executable/1)
+    end
   end
 
   @impl ElixirMake.Precompiler

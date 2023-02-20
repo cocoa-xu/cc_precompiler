@@ -102,6 +102,12 @@ def project do
     # will not do anything between each build
     cleanup: "mycleanup",
 
+    # optional config key
+    #   true - the corresponding target will be available as long as we can detect either `CC` or `CXX`
+    #   false  - both `CC` and `CXX` should be present on the system
+    # defaults to `false`
+    allow_missing_compiler: false,
+
     # optional config that provides a map of available compilers
     # on different systems
     compilers: %{
