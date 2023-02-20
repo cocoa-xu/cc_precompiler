@@ -14,7 +14,7 @@ by adding `cc_precompiler` to your list of dependencies in `mix.exs`:
 ```elixir
 def deps do
   [
-    {:cc_precompiler, "~> 0.1.1"}
+    {:cc_precompiler, "~> 0.1.6"}
   ]
 end
 ```
