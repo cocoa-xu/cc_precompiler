@@ -200,7 +200,11 @@ defmodule CCPrecompiler do
 
   @impl ElixirMake.Precompiler
   def all_supported_targets(:fetch) do
-    List.flatten(Enum.map(compilers(), &Map.keys(elem(&1, 1))))
+    Enum.map(compilers(), fn os ->
+      Map.keys(elem(os, 1))
+      |> Enum.reject(fn x -> x == :include_default_ones end)
+    end)
+    |> List.flatten()
   end
 
   @impl ElixirMake.Precompiler
