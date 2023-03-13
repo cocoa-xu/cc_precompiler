@@ -176,8 +176,22 @@ jobs:
             gcc-powerpc64le-linux-gnu g++-powerpc64le-linux-gnu \
             gcc-s390x-linux-gnu g++-s390x-linux-gnu
 
+      - name: Get musl cross-compilers (Optional, use this if you have musl targets to compile)
+        run: |
+          for musl_arch in x86_64 aarch64 riscv64
+          do
+            wget "https://musl.cc/${musl_arch}-linux-musl-cross.tgz" -O "${musl_arch}-linux-musl-cross.tgz"
+            tar -xf "${musl_arch}-linux-musl-cross.tgz"
+          done
+
       - name: Mix Test
         run: |
+          # Optional, use this if you have musl targets to compile
+          for musl_arch in x86_64 aarch64 riscv64
+          do
+            export PATH="$(pwd)/${musl_arch}-linux-musl-cross/bin:${PATH}"
+          done
+
           mix deps.get
           MIX_ENV=test mix test
 

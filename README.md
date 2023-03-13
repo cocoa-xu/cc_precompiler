@@ -67,7 +67,40 @@ Last but not least, as the name suggests, this environment variable is set by `c
 
 ### Customise Precompilation Targets
 
-To override the default configuration, please set the `cc_precompiler` key in `project`. For example,
+#### Quick Start
+
+To add custom targets in addition to the default configuration, you can set `:include_default_ones` in `project.cc_precompiler.compilers`. 
+
+Default (cross-)compiler will be included if it's `true`, otherwise only specified targets will be used.
+
+Default value of `:include_default_ones` is `false` to avoid breaking changes.
+
+If a custom target has the same name as a default one, then the custom one will override the default configuration for that target (e.g., the `x86_64-linux-gnu` entry below will override the default gcc configuration and use clang instead).
+
+```elixir
+def project do
+  [
+    # ...
+    cc_precompiler: [
+      compilers: %{
+        {:unix, :linux} => %{
+          :include_default_ones => true,
+          "my-custom-target" => {
+            "my-custom-target-gcc",
+            "my-custom-target-g++"
+          },
+          "x86_64-linux-gnu" => {
+            "x86_64-linux-gnu-clang",
+            "x86_64-linux-gnu-clang++"
+          }
+        }
+      }
+    ]
+  ]
+end
+```
+
+#### Fully Customise Precompilation Targets
 
 ```elixir
 

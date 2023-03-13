@@ -2,7 +2,7 @@ defmodule CCPrecompiler.MixProject do
   use Mix.Project
 
   @app :cc_precompiler
-  @version "0.1.6"
+  @version "0.1.7"
   @github_url "https://github.com/cocoa-xu/cc_precompiler"
   def project do
     [
