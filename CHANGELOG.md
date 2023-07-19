@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.8 (2023-07-19)
+
+### Changed
+
+Fixed `CCPrecompiler.all_supported_targets(:fetch)`. It should fetch and merge default available compilers when `include_default_ones` is `true`.
+
 ## v0.1.7 (2022-03-13)
 
 ### Added
