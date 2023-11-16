@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.9 (2023-11-16)
+
+- added an `exclude_current_target` option
+- updated ex_doc
+
 ## v0.1.8 (2023-07-19)
 
 ### Changed
