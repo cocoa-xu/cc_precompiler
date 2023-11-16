@@ -79,6 +79,7 @@ defmodule CCPrecompiler do
   end
 
   defp only_listed_targets, do: Access.get(user_config(), :only_listed_targets, false)
+  defp exclude_current_target, do: Access.get(user_config(), :exclude_current_target, false)
   defp allow_missing_compiler, do: Access.get(user_config(), :allow_missing_compiler, false)
 
   @impl ElixirMake.Precompiler
@@ -182,25 +183,34 @@ defmodule CCPrecompiler do
     #   time of writing this example)
     available_targets = find_all_available_targets()
 
-    case {only_local(), only_listed_targets(), current_target()} do
-      {true, true, {:ok, current}} ->
+    case {only_local(), only_listed_targets(), current_target(), exclude_current_target()} do
+      {true, true, {:ok, current}, false} ->
         if Enum.member?(available_targets, current) do
           [current]
         else
           []
         end
 
-      {true, _, {:error, err_msg}} ->
+      {true, true, _, true} ->
+        []
+
+      {true, _, {:error, err_msg}, _} ->
         Mix.raise(err_msg)
 
-      {true, false, {:ok, current}} ->
+      {true, false, {:ok, current}, false} ->
         Enum.uniq([current] ++ available_targets)
 
-      {false, true, _} ->
+      {true, false, {:ok, current}, true} ->
         available_targets
 
-      {false, false, {:ok, current}} ->
+      {false, true, _, _} ->
+        available_targets
+
+      {false, false, {:ok, current}, false} ->
         Enum.uniq([current] ++ available_targets)
+
+      {false, false, {:ok, current}, true} ->
+        available_targets
     end
   end
 

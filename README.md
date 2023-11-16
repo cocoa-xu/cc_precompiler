@@ -115,6 +115,13 @@ def project do
     only_listed_targets: true,
 
     # optional config key
+    #   this option is valid if and only if `only_listed_targets` is set to `true`
+    #   - when `exclude_current_target` is `true`, it excludes current target (i.e., the machine that builds these binaries)
+    #     from the list. This can be helpful when you're doing some complex cross-compilations, 
+    #     e.g., you'd like to specify which CI job should build for the x86_64-linux-gnu target
+    exclude_current_target: false,
+
+    # optional config key
     # clean up the priv directory between different targets
     # 
     # for example, common assets for different targets can stay
