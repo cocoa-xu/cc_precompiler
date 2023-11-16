@@ -183,34 +183,38 @@ defmodule CCPrecompiler do
     #   time of writing this example)
     available_targets = find_all_available_targets()
 
-    case {only_local(), only_listed_targets(), current_target(), exclude_current_target()} do
-      {true, true, {:ok, current}, false} ->
-        if Enum.member?(available_targets, current) do
-          [current]
-        else
-          []
-        end
+    targets =
+      case {only_local(), only_listed_targets(), current_target()} do
+        {true, true, {:ok, current}} ->
+          if Enum.member?(available_targets, current) do
+            [current]
+          else
+            []
+          end
 
-      {true, true, _, true} ->
-        []
+        {true, _, {:error, err_msg}} ->
+          Mix.raise(err_msg)
 
-      {true, _, {:error, err_msg}, _} ->
-        Mix.raise(err_msg)
+        {true, false, {:ok, current}} ->
+          Enum.uniq([current] ++ available_targets)
 
-      {true, false, {:ok, current}, false} ->
-        Enum.uniq([current] ++ available_targets)
+        {false, true, _} ->
+          available_targets
 
-      {true, false, {:ok, current}, true} ->
-        available_targets
+        {false, false, {:ok, current}} ->
+          Enum.uniq([current] ++ available_targets)
+      end
 
-      {false, true, _, _} ->
-        available_targets
+    if exclude_current_target() do
+      case current_target() do
+        {:ok, current} ->
+          targets -- [current]
 
-      {false, false, {:ok, current}, false} ->
-        Enum.uniq([current] ++ available_targets)
-
-      {false, false, {:ok, current}, true} ->
-        available_targets
+        _ ->
+          targets
+      end
+    else
+      targets
     end
   end
 

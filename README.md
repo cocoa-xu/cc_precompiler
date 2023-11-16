@@ -119,6 +119,7 @@ def project do
     #   - when `exclude_current_target` is `true`, it excludes current target (i.e., the machine that builds these binaries)
     #     from the list. This can be helpful when you're doing some complex cross-compilations, 
     #     e.g., you'd like to specify which CI job should build for the x86_64-linux-gnu target
+    #     this will force current target to be excluded from the list
     exclude_current_target: false,
 
     # optional config key
