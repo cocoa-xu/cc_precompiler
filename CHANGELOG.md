@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.10 (2024-03-10)
+
+- allow `{:elixir_make, "~> 0.7 or ~> 0.8"}` 
+
 ## v0.1.9 (2023-11-16)
 
 - added an `exclude_current_target` option
