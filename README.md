@@ -39,7 +39,7 @@ By default, it will probe some well-known C/C++ crosss-compilers existing on you
   | `powerpc64le-linux-gnu` | `powerpc64le-linux-gnu-`  | `#{prefix}gcc` | `#{prefix}g++` |
   | `s390x-linux-gnu`       | `s390x-linux-gnu-`        | `#{prefix}gcc` | `#{prefix}g++` |
 
-  `cc_precompiler` will try to find `#{prefix}gcc` in `$PATH`, and if `#{prefix}gcc` can be found, then the correspondong target will be activiated. Otherwise, that target will be ignored.
+  `cc_precompiler` will try to find `#{prefix}gcc` in `$PATH`, and if `#{prefix}gcc` can be found, then the correspondong target will be activated. Otherwise, that target will be ignored.
 
 #### macOS
 
@@ -48,7 +48,7 @@ By default, it will probe some well-known C/C++ crosss-compilers existing on you
   | `x86_64-apple-darwin`   | N/A                       | `gcc -arch x86_64` | `g++ -arch x86_64` |
   | `aarch64-apple-darwin`  | N/A                       | `gcc -arch arm64`  | `g++ -arch arm64`  |
 
-  `cc_precompiler` will try to find `gcc` in `$PATH`, and if `gcc` can be found, then both `x86_64` and `arm64` target will be activiated. Otherwise, both targets will be ignored.
+  `cc_precompiler` will try to find `gcc` in `$PATH`, and if `gcc` can be found, then both `x86_64` and `arm64` target will be activated. Otherwise, both targets will be ignored.
 
 #### Note
 Triplet for current host will be always available, `:erlang.system_info(:system_architecture)`.
@@ -63,7 +63,7 @@ The reason we might need this is that some 3rd party library may support some fe
 
 An example with further explanation can be found on [cocoa-xu/nif_opt_flags](https://github.com/cocoa-xu/nif_opt_flags).
 
-Last but not least, as the name suggests, this environment variable is set by `cc_precompiler`, thus if you switch to another precompiler, please check their manual for the equvilent.
+Last but not least, as the name suggests, this environment variable is set by `cc_precompiler`, thus if you switch to another precompiler, please check their manual for the equivalent.
 
 ### Customise Precompilation Targets
 
